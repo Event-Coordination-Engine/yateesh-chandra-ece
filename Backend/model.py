@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
+# Create a class User to map it as a relation in Database
 class User(Base):
     __tablename__ = "user"
 
@@ -10,13 +11,15 @@ class User(Base):
     first_name = Column(String, nullable = False)
     last_name = Column(String, nullable = True)
     email = Column(String, nullable= False)
+    password = Column(String, nullable = False)
     phone = Column(String, nullable = False)
-    privilege = Column(String, nullable = False, default='user')
+    privilege = Column(String, nullable = False, default='USER')
     registered_date = Column(DateTime, nullable = False, default= datetime.now())
 
     attendees = relationship('Attendee', back_populates='users')
     user_event = relationship('Event', back_populates='organizer')
 
+# Create a class Event to map it as a relation
 class Event(Base) :
 
     __tablename__ = "event"
@@ -36,6 +39,7 @@ class Event(Base) :
     event_attendee = relationship('Attendee', back_populates='events')
     organizer = relationship('User', back_populates='user_event')
 
+# Create a class Attendee to map it as a relation
 class Attendee(Base) : 
 
     __tablename__ = "attendee"
