@@ -50,3 +50,6 @@ class Attendee(Base) :
 
     events = relationship('Event', back_populates='event_attendee')
     users = relationship('User', back_populates='attendees')
+
+
+
