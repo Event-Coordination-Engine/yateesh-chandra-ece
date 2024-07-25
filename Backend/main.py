@@ -1,10 +1,10 @@
 from fastapi import FastAPI, Depends, HTTPException
 from database import Base, SessionLocal, engine
-from dto import UserRegistrationDTO
+from dto import UserRegistrationDTO, UserLoginDTO, UserResponseDTO
 from model import Base, User
 from typing import Annotated
 from sqlalchemy.orm import Session
-from auth import get_password_hash
+from auth import get_password_hash, verify_password
 import re
 
 app = FastAPI()
@@ -26,7 +26,7 @@ db_dependency = Annotated[Session, Depends(get_db)]
 
 # Create a Registration Function that posts to database
 @app.post("/register", status_code=201)
-def register(user_obj : UserRegistrationDTO, db : db_dependency):
+def register_user(user_obj : UserRegistrationDTO, db : db_dependency):
 
     # Check if the email exists
     email_check = db.query(User).filter(User.email == user_obj.email).first()
@@ -45,13 +45,13 @@ def register(user_obj : UserRegistrationDTO, db : db_dependency):
     if len(user_obj.phone) < 10 :
         raise HTTPException(status_code=400, detail= "Invalid Phone number")
 
-    if not user_obj.first_name :
+    if not user_obj.first_name.strip() :
         raise HTTPException(status_code=400, detail= "First Name is mandatory")
     
     # Validate the password
     if not user_obj.password or len(user_obj.password.strip()) == 0:
         raise HTTPException(status_code=400, detail = "Please Provide Password")
-    if not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]+$", user_obj.password):
+    if not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@#$%^&+=]+$", user_obj.password):
         raise HTTPException(status_code=400, detail = "Weak Password detected. Use combination of Uppercase, lowercase and numbers")
     if len(user_obj.password) < 7 :
         raise HTTPException(status_code=400, detail = "Password should be atleast 7 characters")
@@ -69,3 +69,17 @@ def register(user_obj : UserRegistrationDTO, db : db_dependency):
     db.add(user_obj)
     db.commit()
     return {"status_code" : 201 , "message" : "User Successfully Registered"}
+
+@app.post("/login", status_code=200)
+def login_user(user_login_obj : UserLoginDTO, db : db_dependency) :
+    db_user = db.query(User).filter(User.email == user_login_obj.email).first()
+    if not db_user : 
+        raise HTTPException(status_code=401, detail = "Unregistered Email")
+    if not verify_password(user_login_obj.password, db_user.password) :
+        raise HTTPException(status_code=401, detail = "Invalid Credentials")
+    user_passon_dto = UserResponseDTO(email=db_user.email,
+                                      user_id = db_user.user_id,
+                                      name = db_user.first_name + " " + db_user.last_name,
+                                      phone = db_user.phone,
+                                      privilege= db_user.privilege)
+    return {"status code" : 200, "message" : "Successfully Logged in..!", "body" : user_passon_dto}

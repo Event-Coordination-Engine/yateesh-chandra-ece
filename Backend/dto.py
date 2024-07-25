@@ -8,3 +8,14 @@ class UserRegistrationDTO(BaseModel) :
     email : str = None
     password : str = None
     phone : str = None
+
+class UserLoginDTO(BaseModel) :
+    email : str = None
+    password : str = None
+
+class UserResponseDTO(BaseModel) :
+    email : str
+    user_id : int
+    name : str
+    phone : str
+    privilege : str
