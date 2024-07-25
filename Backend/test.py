@@ -1,3 +1,3 @@
-var = "  Yatee Chandra  "
-print(var)
-print(var.strip())
+# var = "  Yatee Chandra  "
+# print(var)
+# print(var.strip())
