@@ -1,0 +1,3 @@
+react-router-dom
+axios
+sweetalert2
