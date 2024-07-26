@@ -25,7 +25,7 @@ def get_db() :
 db_dependency = Annotated[Session, Depends(get_db)]
 
 # Create a Registration Function that posts to database
-@app.post("/register", status_code=201)
+@app.post("/user/register", status_code=201)
 def register_user(user_obj : UserRegistrationDTO, db : db_dependency):
 
     # Check if the email exists
@@ -70,7 +70,7 @@ def register_user(user_obj : UserRegistrationDTO, db : db_dependency):
     db.commit()
     return {"status_code" : 201 , "message" : "User Successfully Registered"}
 
-@app.post("/login", status_code=200)
+@app.post("/user/login", status_code=200)
 def login_user(user_login_obj : UserLoginDTO, db : db_dependency) :
     db_user = db.query(User).filter(User.email == user_login_obj.email).first()
     if not db_user : 
