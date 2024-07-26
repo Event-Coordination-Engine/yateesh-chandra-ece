@@ -1,0 +1,5 @@
+fastapi 
+passlib
+bcrypt==3.2.2
+sqlalchemy 
+uvicorn
