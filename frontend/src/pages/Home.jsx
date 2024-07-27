@@ -1,13 +1,21 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
+
+  const navigate = useNavigate()
+  
+  const handleButton = () => {
+    navigate("/register");
+  }
+
   return (
     <div className="home-page">
       <header className="hero-section">
         <div className="hero-content">
           <h1>Welcome to ECE</h1>
           <p>Your one-step solution for co-ordinating events effortlessly!</p>
-          <a href="#features" className="cta-button">Dive In</a>
+          <button className="cta-button" onClick={handleButton}>Dive In</button>
         </div>
       </header>
       

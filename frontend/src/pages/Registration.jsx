@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";  // Importing eye icons
 import SweetAlert from "../sweetalerts/SweetAlert";
 import userService from "../services/userService";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const Registration = () => {
     const [first_name, setfirst_name] = useState("");
@@ -19,6 +21,8 @@ const Registration = () => {
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    const navigate = useNavigate()
 
     const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -49,7 +53,7 @@ const Registration = () => {
         setPassword(e.target.value);
         if (!password) {
             setPasswordError("Password is required ");
-        } else if (password.length < 7) {
+        } else if (password.length < 6) {
             setPasswordError("Password must be at least 7 characters");
         } else {
             setPasswordError("");
@@ -156,18 +160,17 @@ const Registration = () => {
             console.log(data);
             await userService.registerUser(data);
             SweetAlert.registrationSuccessFireAlert();
-            // navigate("/login");
+            navigate("/login");
 
         } catch (error) {
             console.log(error);
-            if (error.response.data.password === "Password must contain at least one uppercase letter and one digit") {
-                SweetAlert.registrationFailureFireAlert(error.response.data.password);
-                setPasswordError("Password must contain atleast one uppercase and number");
-            }
-
-            if (error.response.data.message === "Email already Exists") {
-                SweetAlert.registrationFailureFireAlert(error.response.data.message);
-                setEmailError(error.response.data.message);
+            if (error.response.data.detail === "User with same Email already exists") {
+                Swal.fire({
+                    timer : 2000,
+                    titleText : "Oops.! Duplicate Email not allowed",
+                    icon : "warning"
+                })
+                setEmailError(error.response.data.detail);
             }
         }
     };
@@ -218,7 +221,6 @@ const Registration = () => {
                     <input
                         type={showPassword ? "text" : "password"}
                         id="password"
-                        // className="password-group"
                         name="password"
                         value={password}
                         onChange={handlePasswordChange}
@@ -270,7 +272,7 @@ const Registration = () => {
 
                 <button type="submit" className="submit-button">Register</button>
             
-                <h3 className="h3-heading text">Already our Subscriber? <a href="/login">Login Now</a></h3>
+                <h3 className="h3-heading text">Already our Subscriber? <a className = "cursor-pointer" onClick={() => {navigate("/login")}}>Login Now</a></h3>
             </form>
         </div>
     );
