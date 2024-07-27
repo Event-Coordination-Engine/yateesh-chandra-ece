@@ -11,7 +11,6 @@ public
 
 # testing
 /coverage
-
 # production
 /build
 
