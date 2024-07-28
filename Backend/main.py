@@ -1,10 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from database import Base, SessionLocal, engine
-from dto import UserRegistrationDTO, UserLoginDTO, UserResponseDTO
-from model import Base, User
+from dto import UserRegistrationDTO, UserLoginDTO, UserResponseDTO, EventCreateDTO
+from model import Base, User, Event
 from typing import Annotated
 from sqlalchemy.orm import Session
+from datetime import datetime
 from auth import get_password_hash, verify_password
 import re
 
@@ -12,6 +13,25 @@ app = FastAPI()
 
 # Create the tables provided in metadata
 Base.metadata.create_all(bind = engine)
+
+def validate_event_date(date_str: str) -> datetime:
+    try:
+        event_date = datetime.strptime(date_str, '%d-%m-%Y')
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use DD-MM-YYYY.")
+    
+    if event_date < datetime.now():
+        raise HTTPException(status_code=400, detail="The event date cannot be in the past.")
+    
+    return event_date.date().strftime('%d-%m-%Y')
+
+def validate_event_time(time_str: str) -> datetime:
+    try:
+        event_time = datetime.strptime(time_str, '%H:%M').time()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid time format. Use HH:MM.")
+    
+    return event_time.strftime('%H:%M')
 
 # Fetch Database and Make a local session as long as we work on database
 def get_db() :
@@ -25,6 +45,7 @@ def get_db() :
 # Set up Database Dependency
 db_dependency = Annotated[Session, Depends(get_db)]
 
+#-#-#-#-#-# USER API #-#-#-#-#-#
 # Create a Registration Function that posts to database
 @app.post("/user/register", status_code=201)
 def register_user(user_obj : UserRegistrationDTO, db : db_dependency):
@@ -83,8 +104,54 @@ def login_user(user_login_obj : UserLoginDTO, db : db_dependency) :
                                       name = db_user.first_name + " " + db_user.last_name,
                                       phone = db_user.phone,
                                       privilege= db_user.privilege)
-    return {"status code" : 200, "message" : "Successfully Logged in..!", "body" : user_passon_dto}
+    return {"status_code" : 200, "message" : "Successfully Logged in..!", "body" : user_passon_dto}
 
+#-#-#-#-#-# EVENT API #-#-#-#-#-#
+# Create Event Function 
+@app.post("/create-event", status_code=201)
+def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
+
+    event_date = validate_event_date(create_event_obj.date_of_event)
+    event_time = validate_event_time(create_event_obj.time_of_event)
+    
+    db_user = db.query(User).filter(create_event_obj.organizer_id == User.user_id).first()
+    if not db_user : 
+        raise HTTPException(status_code=404, detail="User with organiser_id not found")
+    if len(create_event_obj.event_title.strip()) == 0:
+        raise HTTPException(status_code=400, detail="Event Title is mandatory")
+    if len(create_event_obj.event_description.strip()) == 0:
+        raise HTTPException(status_code=400, detail="Event Description is mandatory")
+    if len(create_event_obj.time_of_event.strip()) == 0:
+        raise HTTPException(status_code=400, detail="Time is mandatory")
+    if (len(create_event_obj.location.strip()) == 0) :
+        raise HTTPException(status_code=400, detail="Location can not be empty")
+    
+    
+    if db_user.privilege == "USER" :
+        event_create_dto = Event(event_title = create_event_obj.event_title,
+                             event_description = create_event_obj.event_description,
+                             time_of_event = event_time,
+                             date_of_event = event_date,
+                             organizer_id = create_event_obj.organizer_id,
+                             location = create_event_obj.location,
+                             capacity = create_event_obj.capacity,
+                             request_timestamp = datetime.now()
+                             )
+    else :
+        event_create_dto = Event(event_title = create_event_obj.event_title,
+                             event_description = create_event_obj.event_description,
+                             time_of_event = event_time,
+                             date_of_event = event_date.date().strftime('%d-%m-%Y'),
+                             organizer_id = create_event_obj.organizer_id,
+                             location = create_event_obj.location,
+                             capacity = create_event_obj.capacity,
+                             request_timestamp = datetime.now(),
+                             approved_timestamp = datetime.now(),
+                             status = 'approved'
+                             )
+    db.add(event_create_dto)
+    db.commit()
+    return {"status_code" : 201, "message" : "Event successfully created"}
 
 app.add_middleware(
     CORSMiddleware,

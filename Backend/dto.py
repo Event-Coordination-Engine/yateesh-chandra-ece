@@ -1,8 +1,9 @@
 from model import User
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
-# Create a DTO for User Registration
+# DTO for User Registration
 class UserRegistrationDTO(BaseModel) : 
     first_name : str = None
     last_name : Optional[str] = None
@@ -20,3 +21,13 @@ class UserResponseDTO(BaseModel) :
     name : str
     phone : str
     privilege : str
+
+# DTO for Event
+class EventCreateDTO(BaseModel):
+    event_title : str
+    event_description :str
+    time_of_event : str
+    date_of_event : str
+    organizer_id : int
+    location : str
+    capacity : int
