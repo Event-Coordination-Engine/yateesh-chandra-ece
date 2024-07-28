@@ -80,9 +80,31 @@ const Login = () => {
                 password
             };
             console.log(data);
-            const res = await userService.loginUser(data);
-            console.log(res)
-            SweetAlert.registrationSuccessFireAlert();
+            const response = await userService.loginUser(data);
+            console.log(response)
+            
+            localStorage.setItem("role", response.data.body.privilege);
+            localStorage.setItem("id", response.data.body.user_id);
+            localStorage.setItem("name", response.data.body.name);
+            localStorage.setItem("email", response.data.body.email);
+            localStorage.setItem("phone", response.data.body.phone);
+
+            Swal.fire({
+                position: 'center',
+                allowOutsideClick: false,
+                color: "#297c02",
+                html: `<div class="animation">Signing you in<span class="dot1">.</span><span class="dot2">.</span><span class="dot3">.!</span></div>`,
+                showConfirmButton: false,
+                background: "#fafafa",
+                timer: 2000,
+                width: 500,
+                timerProgressBar: true,
+                backdrop: `#b5faff`,
+                customClass: {
+                  timerProgressBar: "custom-swal-timer",
+                },
+              });
+
             navigate("/dashboard");
             
 
@@ -110,7 +132,7 @@ const Login = () => {
 
     return (
         <div className="login-form-container">
-            <h1 className="h1-cool">Login Form</h1>
+            <h1 className="h1-cool">Login</h1>
             <form onSubmit={handleFormSubmit} className="registration-form">
 
                 <div className="form-group">
@@ -146,7 +168,10 @@ const Login = () => {
                     {passwordError && <div className="error">{passwordError}</div>}
                 </div>
 
-                <button type="submit" className="login-submit-button">Login</button>
+                <div className="button-group">
+                    <button type="submit" className="login-submit-button">Login</button>
+                    <button type="button" className="home-button" onClick={redirect}>Home</button>
+                </div>
             
                 <h3 className="h3-heading text">New to ECE? <a className = "cursor-pointer" onClick={() => {navigate("/register")}}>Enroll now</a></h3>
             </form>

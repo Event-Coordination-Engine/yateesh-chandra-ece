@@ -24,6 +24,10 @@ const Registration = () => {
 
     const navigate = useNavigate()
 
+    const redirect = () => {
+        navigate("/")
+    }
+
     const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
     const handleNameChange = (e) => {
@@ -270,7 +274,10 @@ const Registration = () => {
                     {phoneError && <div className="error">{phoneError}</div>}
                 </div>
 
-                <button type="submit" className="submit-button">Register</button>
+                <div className="button-group">
+                    <button type="submit" className="submit-button">Register</button>
+                    <button type="button" className="home-button" onClick={redirect}>Home</button>
+                </div>
             
                 <h3 className="h3-heading text">Already our Subscriber? <a className = "cursor-pointer" onClick={() => {navigate("/login")}}>Login Now</a></h3>
             </form>

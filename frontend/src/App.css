@@ -3,12 +3,12 @@ body {
   margin: 0;
   font-family: Arial, sans-serif;
   color: #333;
-  background-color: #eeeeee;
+  background-color: #b5faff;
 }
 
 /* Hero Section */
 .hero-section {
-  background-color: #d6d6d6cc;
+  background-color: #55f4faf6;
   text-align: center;
   padding: 100px 20px;
   position: relative;
@@ -46,6 +46,8 @@ body {
   background-color: #e64a19;
 }
 
+
+
 /* Features Section */
 .features-section {
   display: flex;
@@ -62,7 +64,7 @@ body {
   text-align: center;
   border: 1px solid #0084ff;
   border-radius: 5px;
-  background: #fdea93;
+  background: #f7ba38;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   transition: transform 0.3s;
 }
@@ -93,7 +95,7 @@ body {
   max-width: 600px;
   margin: 0 auto;
   padding: 30px;
-  background: #fff;
+  background: #fafafa;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   margin-top: 25px;
@@ -104,7 +106,7 @@ body {
   max-width: 500px;
   margin: 0 auto;
   padding: 30px;
-  background: #fff;
+  background: #fafafa;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   margin-top: 25px;
@@ -178,6 +180,12 @@ body {
   outline: #f10404;
 }
 
+.button-group {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
 .error {
   color: red;
   font-size: 0.85rem;
@@ -194,6 +202,7 @@ body {
 .submit-button {
   background-color: #ff5722;
   color: #fff;
+  width: 100%;
   padding: 15px;
   font-size: 1.1em;
   border: none;
@@ -202,19 +211,45 @@ body {
   transition: background-color 0.3s, transform 0.3s;
 }
 
+
+
 .login-submit-button {
   background-color: #0fb300;
   color: #fff;
   padding: 15px;
   font-size: 1.1em;
+  width: 100%;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s, transform 0.3s; 
 }
 
+.home-button {
+  background-color: #2196F3;
+  color: #fff;
+  padding: 15px;
+  width: 100%;
+  font-size: 1.1em;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s; 
+  margin-left: 10px;
+}
+
 .login-submit-button:hover {
   background-color: #297c02;
+  transform: scale(1.05);
+}
+
+.submit-button:hover {
+  background-color: #ff3c00;
+  transform: scale(1.05);
+}
+
+.home-button:hover{
+  background-color: #1d2cff;
   transform: scale(1.05);
 }
 
@@ -257,4 +292,57 @@ body {
     font-size: 1.2rem;
     color: #000000;
   }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .button-group button {
+    width: 100%;
+    margin: 5px 0;
+  }
 }
+
+.custom-swal-timer {
+  background-color:chartreuse; 
+}
+
+.custom-swal-button{
+  width: 100px;
+}
+
+.custom-swal-backdrop {
+  background-color: #b5faff;
+  
+}
+
+
+.animation {
+  display: flex;
+  justify-content: center;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.dot1,
+.dot3 {
+  opacity: 0;
+  animation: dotBlink 1s infinite;
+}
+
+.dot2 {
+  opacity: 0;
+  animation: dotBlink 0.5s infinite;
+}
+
+@keyframes dotBlink {
+  0% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1.0;
+  }
+} 

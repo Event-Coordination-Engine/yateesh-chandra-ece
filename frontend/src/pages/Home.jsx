@@ -6,7 +6,7 @@ const HomePage = () => {
   const navigate = useNavigate()
   
   const handleButton = () => {
-    navigate("/register");
+    navigate("/login");
   }
 
   return (
@@ -15,7 +15,7 @@ const HomePage = () => {
         <div className="hero-content">
           <h1>Welcome to ECE</h1>
           <p>Your one-step solution for co-ordinating events effortlessly!</p>
-          <button className="cta-button" onClick={handleButton}>Dive In</button>
+          <button className="cta-button cursor-pointer" onClick={handleButton}>Dive In</button>
         </div>
       </header>
       
