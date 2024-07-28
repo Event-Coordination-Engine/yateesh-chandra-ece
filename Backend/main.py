@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from database import Base, SessionLocal, engine
 from dto import UserRegistrationDTO, UserLoginDTO, UserResponseDTO
 from model import Base, User
@@ -83,3 +84,12 @@ def login_user(user_login_obj : UserLoginDTO, db : db_dependency) :
                                       phone = db_user.phone,
                                       privilege= db_user.privilege)
     return {"status code" : 200, "message" : "Successfully Logged in..!", "body" : user_passon_dto}
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins = ["http://localhost:3000"],
+    allow_credentials = True,
+    allow_methods = ["*"],
+    allow_headers = ["*"],
+)

@@ -1,41 +1,44 @@
 import React, { useState } from "react";
-// import {useNavigate} from 'react-router-dom';
+import { FaEye, FaEyeSlash } from "react-icons/fa";  // Importing eye icons
 import SweetAlert from "../sweetalerts/SweetAlert";
 import userService from "../services/userService";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const Registration = () => {
-
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
+    const [first_name, setfirst_name] = useState("");
+    const [last_name, setlast_name] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [phoneNumber, setPhoneNumber] = useState("");
+    const [phone, setphone] = useState("");
 
     const [nameError, setNameError] = useState("");
-    const [lastNameError, setLastNameError] = useState("");
     const [emailError, setEmailError] = useState("");
     const [passwordError, setPasswordError] = useState("");
     const [confirmPasswordError, setConfirmPasswordError] = useState("");
-    const [phoneNumberError, setPhoneNumberError] = useState("");
+    const [phoneError, setphoneError] = useState("");
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    // const navigate = useNavigate()
+    const navigate = useNavigate()
+
+    const redirect = () => {
+        navigate("/")
+    }
+
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
     const handleNameChange = (e) => {
-        setFirstName(e.target.value);
+        setfirst_name(e.target.value);
         if (nameError) {
-        setNameError("");
+            setNameError("");
         }
     };
 
-    const handleLastNameChange = (e) => {
-        setLastName(e.target.value);
-        if (lastNameError) {
-        setLastNameError("");
-        }
+    const handlelast_nameChange = (e) => {
+        setlast_name(e.target.value);
     };
 
     const handleEmailChange = (e) => {
@@ -43,8 +46,8 @@ const Registration = () => {
         setEmail(newEmail);
         if (!newEmail) {
             setEmailError("Email is required");
-        } else if (!newEmail.endsWith("@nucleusteq.com")) {
-            setEmailError("Email must be in the form of @nucleusteq.com domain");
+        } else if (!emailPattern.test(newEmail)) {
+            setEmailError("Invalid Email Format");
         } else {
             setEmailError("");
         }
@@ -54,8 +57,8 @@ const Registration = () => {
         setPassword(e.target.value);
         if (!password) {
             setPasswordError("Password is required ");
-        } else if (password.length < 7) {
-            setPasswordError("Password must be at least 8 characters");
+        } else if (password.length < 6) {
+            setPasswordError("Password must be at least 7 characters");
         } else {
             setPasswordError("");
         }
@@ -76,28 +79,28 @@ const Registration = () => {
 
     const handlephoneChange = (e) => {
         const numericInput = e.target.value.replace(/\D/g, "");
-        setPhoneNumber(numericInput);
+        setphone(numericInput);
         if (numericInput.length < 10) {
-            setPhoneNumberError("Phone number must be 10 digits");
+            setphoneError("Phone number must be 10 digits");
         } else {
-            setPhoneNumberError("");
+            setphoneError("");
         }
     };
 
-    // const togglePasswordVisibility = () => {
-    //     setShowPassword(!showPassword);
-    // };
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword);
+    };
 
-    // const toggleConfirmPasswordVisibility = () => {
-    //     setShowConfirmPassword(!showConfirmPassword);
-    // };
+    const toggleConfirmPasswordVisibility = () => {
+        setShowConfirmPassword(!showConfirmPassword);
+    };
 
     const validateForm = () => {
         let isValid = true;
-        if (!firstName) {
+        if (!first_name) {
             setNameError("User Name is required");
             isValid = false;
-        } else if (firstName.startsWith(" ")){
+        } else if (first_name.startsWith(" ")){
             setNameError("Name cannot start with spaces");
             isValid = false;
         } else{
@@ -107,15 +110,15 @@ const Registration = () => {
         if (!email) {
             setEmailError("Email is required");
             isValid = false;
-        } else if (!email.endsWith("@nucleusteq.com")) {
+        } else if (!emailPattern.test(email)) {
             isValid = false;
-            setEmailError("Email must be in the form of @nucleusteq.com domain");
+            setEmailError("Invalid Email Format detected");
         } else {
             setEmailError("");
         }
-
+        
         if (!password) {
-            setPasswordError("Password is required ");
+            setPasswordError("Password is required");
             isValid = false;
         }
         if (!confirmPassword) {
@@ -130,14 +133,14 @@ const Registration = () => {
             isValid = false;
         }
 
-        if (!phoneNumber) {
-            setPhoneNumberError("Phone Number is required");
+        if (!phone) {
+            setphoneError("Phone Number is required");
             isValid = false;
-        } else if (phoneNumber.length < 10 || phoneNumber.length > 10) {
-            setPhoneNumberError("Phone number must be 10 digits.");
+        } else if (phone.length < 10 ) {
+            setphoneError("Phone number must be atleast 10 digits.");
             isValid = false;
         } else {
-            setPhoneNumberError("");
+            setphoneError("");
         }
         return isValid;
     };
@@ -151,133 +154,132 @@ const Registration = () => {
         }
 
         try {
-
             const data = {
-                firstName,
-                lastName,
+                first_name,
+                last_name : last_name || null,
                 email,
                 password,
-                phoneNumber,
+                phone,
             };
-
+            console.log(data);
             await userService.registerUser(data);
             SweetAlert.registrationSuccessFireAlert();
-            // navigate("/login");
+            navigate("/login");
 
         } catch (error) {
-            if(error.response.data.password === "Password must contain at least one uppercase letter and one digit"){
-                SweetAlert.registrationFailureFireAlert(error.response.data.password);
-                setPasswordError("Password must contain atleast one uppercase and number");
-            }
-
-            if(error.response.data.message === "Email already Exists"){
-                SweetAlert.registrationFailureFireAlert(error.response.data.message);
-                setEmailError(error.response.data.message);
+            console.log(error);
+            if (error.response.data.detail === "User with same Email already exists") {
+                Swal.fire({
+                    timer : 2000,
+                    titleText : "Oops.! Duplicate Email not allowed",
+                    icon : "warning"
+                })
+                setEmailError(error.response.data.detail);
             }
         }
     };
 
-    return(
+    return (
         <div className="registration-form-container">
-            <h1>Register</h1>
+            <h1 className="h1-cool">Enrollment Form</h1>
             <form onSubmit={handleFormSubmit} className="registration-form">
                 <div className="form-group">
-                <label htmlFor="firstName">First Name</label>
+                    <label htmlFor="first_name">First Name</label>
                     <input
-                    type="text"
-                    id="firstName"
-                    name="firstName"
-                    value={firstName}
-                    onChange={handleNameChange}
-                    required
+                        type="text"
+                        id="first_name"
+                        name="first_name"
+                        value={first_name}
+                        onChange={handleNameChange}
+                        required
                     />
                     {nameError && <div className="error">{nameError}</div>}
                 </div>
                 
                 <div className="form-group">
-                <label htmlFor="lastName">Last Name</label>
+                    <label htmlFor="last_name">Last Name</label>
                     <input
-                    type="text"
-                    id="lastName"
-                    name="lastName"
-                    value={lastName}
-                    onChange={handleLastNameChange}
-                    required
+                        type="text"
+                        id="last_name"
+                        name="last_name"
+                        value={last_name}
+                        onChange={handlelast_nameChange}
                     />
                 </div>
 
                 <div className="form-group">
-                <label htmlFor="email">Email</label>
+                    <label htmlFor="email">Email</label>
                     <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={email}
-                    onChange={handleEmailChange}
-                    required
+                        type="email"
+                        id="email"
+                        name="email"
+                        value={email}
+                        onChange={handleEmailChange}
+                        required
                     />
                     {emailError && <div className="error">{emailError}</div>}
                 </div>
 
                 <div className="form-group">
-                <label htmlFor="password">Password</label>
+                    <label htmlFor="password">Password</label>
                     <input
-                    type={showPassword ? "text" : "password"}
-                    id="password"
-                    name="password"
-                    value={password}
-                    onChange={handlePasswordChange}
-                    required
+                        type={showPassword ? "text" : "password"}
+                        id="password"
+                        name="password"
+                        value={password}
+                        onChange={handlePasswordChange}
+                        required
                     />
-                    {passwordError && <div className="error">{passwordError}</div>}
-
-                    {/* <ButtonComponent
-                        type = "button"
-                        className = "password-toggle-button"
+                    <button
+                        type="button"
+                        className="password-toggle-button"
                         onClick={togglePasswordVisibility}
-                        text = {showPassword ? <FaEyeSlash/> : <FaEye/>} 
-                        /> */}
+                    >
+                        {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                    {passwordError && <div className="error">{passwordError}</div>}
                 </div>
-    
 
                 <div className="form-group">
-                <label htmlFor="confirmPassword">Confirm Password</label>
+                    <label htmlFor="confirmPassword">Confirm Password</label>
                     <input
-                    type={showConfirmPassword ? "text" :"password"}
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    value={confirmPassword}
-                    onChange={handleConfirmPasswordChange}
-                    required
+                        type={showConfirmPassword ? "text" : "password"}
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        value={confirmPassword}
+                        onChange={handleConfirmPasswordChange}
+                        required
                     />
-                    {/* <ButtonComponent
-                        type = "button"
-                        className = "password-toggle-button"
+                    <button
+                        type="button"
+                        className="password-toggle-button"
                         onClick={toggleConfirmPasswordVisibility}
-                        text = {showConfirmPassword ? <FaEyeSlash/> : <FaEye/>} 
-                        /> */}
+                    >
+                        {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
                     {confirmPasswordError && <div className="error">{confirmPasswordError}</div>}
                 </div>
 
                 <div className="form-group">
-                <label htmlFor="phone">Phone number</label>
+                    <label htmlFor="phone">Phone number</label>
                     <input
-                    type="phone"
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    pattern="[0-9]*"
-                    value={phoneNumber}
-                    onChange={handlephoneChange}
-                    required
+                        type="phone"
+                        id="phone"
+                        name="phone"
+                        pattern="[0-9]*"
+                        value={phone}
+                        onChange={handlephoneChange}
+                        required
                     />
-                    {phoneNumberError && <div className="error">{phoneNumberError}</div>}
+                    {phoneError && <div className="error">{phoneError}</div>}
                 </div>
-    
 
-                <button type="submit" className="submit-button">Register</button>
+                <div className="button-group">
+                    <button type="submit" className="submit-button">Register</button>
+                    <button type="button" className="home-button" onClick={redirect}>Home</button>
+                </div>
             
-                <h3 className = "h3-heading text" text = "Already our Subscriber? " to = "/login" link = "Login Now"/>
-            
+                <h3 className="h3-heading text">Already our Subscriber? <a className = "cursor-pointer" onClick={() => {navigate("/login")}}>Login Now</a></h3>
             </form>
         </div>
     );

@@ -1,15 +1,22 @@
 
 import './App.css';
-import Home from './pages/Home';
+import AdminDashBoard from './dashboard/AdminDashboard';
+import HomePage from './pages/Home';
+import Login from './pages/Login';
 import Registration from './pages/Registration';
-import RegistrationForm from './pages/RegistrationForm';
+import {BrowserRouter, Route, Routes} from "react-router-dom"
 
 function App() {
   return (
     <div className="App">
-      {/* <Home/> */}
-      {/* <RegistrationForm/> */}
-      <Registration/>
+      <BrowserRouter>
+        <Routes>
+          <Route path = "/" element = {<HomePage/>} />
+          <Route path = "/register" element = {<Registration/>} />
+          <Route path = "/login" element = {<Login/>} />
+          <Route path = "/dashboard" element = {<AdminDashBoard/>} />
+        </Routes>
+      </BrowserRouter>
     </div>
   );
 }
