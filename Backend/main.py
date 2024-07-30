@@ -74,7 +74,8 @@ def register_user(user_obj : UserRegistrationDTO, db : db_dependency):
     if not user_obj.password or len(user_obj.password.strip()) == 0:
         raise HTTPException(status_code=400, detail = "Please Provide Password")
     if not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@#$%^&+=]+$", user_obj.password):
-        raise HTTPException(status_code=400, detail = "Weak Password detected. Use combination of Uppercase, lowercase and numbers")
+        raise HTTPException(status_code=400, 
+                            detail = "Weak Password detected. Use combination of Uppercase, lowercase and numbers")
     if len(user_obj.password) < 7 :
         raise HTTPException(status_code=400, detail = "Password should be atleast 7 characters")
     
@@ -141,7 +142,7 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
         event_create_dto = Event(event_title = create_event_obj.event_title,
                              event_description = create_event_obj.event_description,
                              time_of_event = event_time,
-                             date_of_event = event_date.date().strftime('%d-%m-%Y'),
+                             date_of_event = event_date,
                              organizer_id = create_event_obj.organizer_id,
                              location = create_event_obj.location,
                              capacity = create_event_obj.capacity,
@@ -152,6 +153,31 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
     db.add(event_create_dto)
     db.commit()
     return {"status_code" : 201, "message" : "Event successfully created"}
+
+# Get All Events Function
+@app.get("/all-events")
+def get_all_events(db : db_dependency) :
+    result = db.query(Event).all()
+    return{"status_code" : 200, "body" : result}
+
+@app.get("/pending-events")
+def get_all_events(db : db_dependency) :
+    result = db.query(Event).filter(Event.status == "pending").all()
+    return{"status_code" : 200, "body" : result}
+
+@app.get("/approved-events")
+def get_all_events(db : db_dependency) :
+    result = db.query(Event).filter(Event.status == "approved").all()
+    return{"status_code" : 200, "body" : result}
+
+@app.delete("/delete-event/{event_id}")
+def delete_event(event_id : int, db:db_dependency):
+    result = db.query(Event).filter(Event.event_id == event_id).first()
+    if result is None:
+        raise HTTPException(status_code=404, detail="No Event with id found")
+    db.delete(result)
+    db.commit()
+    return { "status_code" : 200, "message" : "Event deleted Successfully"}
 
 app.add_middleware(
     CORSMiddleware,
