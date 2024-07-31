@@ -179,6 +179,32 @@ def delete_event(event_id : int, db:db_dependency):
     db.commit()
     return { "status_code" : 200, "message" : "Event deleted Successfully"}
 
+@app.get("/event/{event_id}")
+def get_event_by_id(event_id : int, db: db_dependency):
+    result = db.query(Event).filter(Event.event_id == event_id).first()
+    if result is None :
+        raise HTTPException(status_code=404, detail="No event found with Id")
+    return {"status_code" : 200, "body" : result}
+
+@app.get("/event_by_user/{user_id}")
+def get_event_by_user_id(user_id : int, db : db_dependency):
+    result = db.query(Event).filter(Event.organizer_id == user_id).all()
+    if result is None:
+        raise HTTPException(status_code=404, detail = "No event organised by this user")
+    return {"status_code" : 200, "body" : result}
+
+@app.put("/approve-event/{event_id}")
+def approve_event(event_id : int, db : db_dependency):
+    result = db.query(Event).filter(Event.event_id == event_id).first()
+    if result is None :
+        raise HTTPException(status_code=404, detail="No event with Id")
+    if result.status == "approved":
+        raise HTTPException(status_code=409, detail="This event is already approved")
+    result.approved_timestamp = datetime.now()
+    result.status = "approved"
+    db.commit()
+    return {"status_code" : 200, "message" : "event approved"}
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins = ["http://localhost:3000"],
