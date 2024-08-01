@@ -31,3 +31,12 @@ class EventCreateDTO(BaseModel):
     organizer_id : int
     location : str
     capacity : int
+
+class EventUpdateDTO(BaseModel):
+    event_title : str
+    event_description :str
+    time_of_event : str
+    date_of_event : str
+    organizer_id : int
+    location : str
+    capacity : int

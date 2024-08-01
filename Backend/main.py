@@ -1,11 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from database import Base, SessionLocal, engine
-from dto import UserRegistrationDTO, UserLoginDTO, UserResponseDTO, EventCreateDTO
+from dto import UserRegistrationDTO, UserLoginDTO, UserResponseDTO, EventCreateDTO, EventUpdateDTO
 from model import Base, User, Event
 from typing import Annotated
 from sqlalchemy.orm import Session
-from datetime import datetime
+from datetime import datetime, timedelta
 from auth import get_password_hash, verify_password
 import re
 
@@ -117,7 +117,7 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
     
     db_user = db.query(User).filter(create_event_obj.organizer_id == User.user_id).first()
     if not db_user : 
-        raise HTTPException(status_code=404, detail="User with organiser_id not found")
+        raise HTTPException(status_code=404, detail="User has no previlege to organize event")
     if len(create_event_obj.event_title.strip()) == 0:
         raise HTTPException(status_code=400, detail="Event Title is mandatory")
     if len(create_event_obj.event_description.strip()) == 0:
@@ -127,7 +127,27 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
     if (len(create_event_obj.location.strip()) == 0) :
         raise HTTPException(status_code=400, detail="Location can not be empty")
     
-    
+    e_title = db.query(Event).filter(Event.event_title == create_event_obj.event_title).first()
+    if e_title is not None :
+        raise HTTPException(status_code=409, detail = "Event Name already Exists..!")
+
+
+    if create_event_obj.location != "online":
+
+        event_datetime = datetime.strptime(f"{create_event_obj.date_of_event} {create_event_obj.time_of_event}", '%d-%m-%Y %H:%M')
+        
+        start_time_window = event_datetime - timedelta(hours=3)
+        end_time_window = event_datetime + timedelta(hours=3)
+
+        conflicting_event = db.query(Event).filter(
+            Event.date_of_event == event_date,
+            Event.location == create_event_obj.location,
+            Event.time_of_event.between(start_time_window.time().strftime('%H:%M'), end_time_window.time().strftime('%H:%M'))
+        ).first()
+
+        if conflicting_event is not None:
+            raise HTTPException(status_code=409, detail="Unable to register since there is a conflicting event.")
+
     if db_user.privilege == "USER" :
         event_create_dto = Event(event_title = create_event_obj.event_title,
                              event_description = create_event_obj.event_description,
@@ -153,6 +173,74 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
     db.add(event_create_dto)
     db.commit()
     return {"status_code" : 201, "message" : "Event successfully created"}
+
+@app.put("/event/{event_id}")
+def update_event(update_event_obj : EventUpdateDTO,event_id : int, db : db_dependency):
+    result = db.query(Event).filter(Event.event_id == event_id).first()
+    if result is None :
+        raise HTTPException(status_code=404, detail="No Event found with Id")
+
+    event_date = validate_event_date(update_event_obj.date_of_event)
+    event_time = validate_event_time(update_event_obj.time_of_event)
+    
+    db_user = db.query(User).filter(update_event_obj.organizer_id == User.user_id).first()
+    if not db_user : 
+        raise HTTPException(status_code=404, detail="User has no previlege to organize event")
+    if len(update_event_obj.event_title.strip()) == 0:
+        raise HTTPException(status_code=400, detail="Event Title is mandatory")
+    if len(update_event_obj.event_description.strip()) == 0:
+        raise HTTPException(status_code=400, detail="Event Description is mandatory")
+    if len(update_event_obj.time_of_event.strip()) == 0:
+        raise HTTPException(status_code=400, detail="Time is mandatory")
+    if (len(update_event_obj.location.strip()) == 0) :
+        raise HTTPException(status_code=400, detail="Location can not be empty")
+    
+    e_title = db.query(Event).filter(Event.event_title == update_event_obj.event_title).first()
+    if e_title is not None :
+        raise HTTPException(status_code=409, detail = "Event Name already Exists..!")
+
+
+    if update_event_obj.location != "online":
+
+        event_datetime = datetime.strptime(f"{update_event_obj.date_of_event} {update_event_obj.time_of_event}", '%d-%m-%Y %H:%M')
+        
+        start_time_window = event_datetime - timedelta(hours=3)
+        end_time_window = event_datetime + timedelta(hours=3)
+
+        conflicting_event = db.query(Event).filter(
+            Event.date_of_event == event_date,
+            Event.location == update_event_obj.location,
+            Event.time_of_event.between(start_time_window.time().strftime('%H:%M'), end_time_window.time().strftime('%H:%M'))
+        ).first()
+
+        if conflicting_event is not None:
+            raise HTTPException(status_code=409, detail="Unable to update since there is a conflicting event.")
+
+    if db_user.privilege == "USER" :
+        event_update_dto = Event(event_title = update_event_obj.event_title,
+                             event_description = update_event_obj.event_description,
+                             time_of_event = event_time,
+                             date_of_event = event_date,
+                             organizer_id = update_event_obj.organizer_id,
+                             location = update_event_obj.location,
+                             capacity = update_event_obj.capacity,
+                             request_timestamp = datetime.now()
+                             )
+    else :
+        event_update_dto = Event(event_title = update_event_obj.event_title,
+                             event_description = update_event_obj.event_description,
+                             time_of_event = event_time,
+                             date_of_event = event_date,
+                             organizer_id = update_event_obj.organizer_id,
+                             location = update_event_obj.location,
+                             capacity = update_event_obj.capacity,
+                             request_timestamp = datetime.now(),
+                             approved_timestamp = datetime.now(),
+                             status = 'approved'
+                             )
+    db.add(event_update_dto)
+    db.commit()
+    return {"status_code" : 200, "message" : "Event successfully updated"}
 
 # Get All Events Function
 @app.get("/all-events")
