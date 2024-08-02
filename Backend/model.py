@@ -32,9 +32,9 @@ class Event(Base) :
     organizer_id = Column(Integer, ForeignKey('user.user_id'), nullable= False)
     location = Column(String, nullable = False)
     capacity = Column(Integer, nullable = False)
-    request_timestamp = Column(DateTime, nullable = False, default= datetime.now())
+    request_timestamp = Column(DateTime, nullable = False, default = datetime.now())
     approved_timestamp = Column(DateTime, nullable = True)
-    status = Column(String, nullable = False, default='pending')
+    status = Column(String, nullable = False, default = 'pending')
 
     event_attendee = relationship('Attendee', back_populates='events')
     organizer = relationship('User', back_populates='user_event')
@@ -50,7 +50,7 @@ class Attendee(Base) :
     email = Column(String, nullable=False)
     phone = Column(String, nullable=False)
     event_id = Column(Integer, ForeignKey('event.event_id'), nullable = False)
-    registration_timestamp = Column(DateTime, nullable=True)
+    registration_timestamp = Column(DateTime, nullable=True, default=datetime.now())
 
     events = relationship('Event', back_populates='event_attendee')
     users = relationship('User', back_populates='attendees')

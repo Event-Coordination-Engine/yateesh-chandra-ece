@@ -34,11 +34,6 @@ const Login = () => {
 
     const handlePasswordChange = (e) => {
         setPassword(e.target.value);
-        if (!password) {
-            setPasswordError("Password is required ");
-        } else {
-            setPasswordError("");
-        }
     };
 
     const togglePasswordVisibility = () => {
