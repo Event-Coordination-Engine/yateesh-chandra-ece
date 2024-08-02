@@ -1,5 +1,6 @@
 
 import './App.css';
+import Index from './components/Index';
 import AdminDashBoard from './dashboard/AdminDashboard';
 import HomePage from './pages/Home';
 import Login from './pages/Login';
@@ -14,7 +15,8 @@ function App() {
           <Route path = "/" element = {<HomePage/>} />
           <Route path = "/register" element = {<Registration/>} />
           <Route path = "/login" element = {<Login/>} />
-          <Route path = "/dashboard" element = {<AdminDashBoard/>} />
+          {/* <Route path = "/dashboard" element = {<AdminDashBoard/>} /> */}
+          <Route path = "/dashboard" element = {<Index/>} />
         </Routes>
       </BrowserRouter>
     </div>

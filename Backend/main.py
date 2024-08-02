@@ -96,10 +96,13 @@ def register_user(user_obj : UserRegistrationDTO, db : db_dependency):
 @app.post("/user/login", status_code=200)
 def login_user(user_login_obj : UserLoginDTO, db : db_dependency) :
     db_user = db.query(User).filter(User.email == user_login_obj.email).first()
+
     if not db_user : 
         raise HTTPException(status_code=401, detail = "Unregistered Email")
     if not verify_password(user_login_obj.password, db_user.password) :
         raise HTTPException(status_code=401, detail = "Invalid Credentials")
+    if db_user.last_name is None:
+        db_user.last_name = ""
     user_passon_dto = UserResponseDTO(email=db_user.email,
                                       user_id = db_user.user_id,
                                       name = db_user.first_name + " " + db_user.last_name,
