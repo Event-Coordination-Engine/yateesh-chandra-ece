@@ -1,4 +1,3 @@
-/* General Styles */
 body {
   margin: 0;
   width: 100%;
@@ -9,12 +8,12 @@ body {
   background-color: #b5faff;
 }
 
-/* Hero Section */
 .hero-section {
   background-color: #55f4faf6;
   text-align: center;
   padding: 100px 20px;
   position: relative;
+  margin-top: 50px; /* Height of top bar */
 }
 
 .hero-content {
@@ -49,7 +48,6 @@ body {
   background-color: #e64a19;
 }
 
-/* Top Bar */
 .top-bar {
   width: 100%;
   background-color: orange;
@@ -57,6 +55,10 @@ body {
   justify-content: right;
   padding: 11px;
   box-sizing: border-box;
+  position: fixed;
+  top: 0;
+  z-index: 1000;
+  left: 0;
 }
 
 .user-info {
@@ -68,7 +70,7 @@ body {
 
 .user-name {
   font-size: 18px;
-  color: rgb(0, 0, 0); 
+  color: rgb(0, 0, 0);
   font-weight: bold;
 }
 
@@ -77,13 +79,14 @@ body {
   color: rgb(0, 0, 0);
 }
 
-/* Features Section */
 .features-section {
   display: flex;
   justify-content: space-around;
   flex-wrap: wrap;
   padding: 50px 20px;
   background-color: #f4f4f4;
+  margin-top: 50px; /* Align content below the top bar */
+  margin-left: 250px; /* Width of side nav */
 }
 
 .feature {
@@ -94,7 +97,7 @@ body {
   border: 1px solid #0084ff;
   border-radius: 5px;
   background: #f7ba38;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s;
 }
 
@@ -116,7 +119,7 @@ body {
   padding: 30px;
   background: #fafafa;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin-top: 25px;
   margin-bottom: 25px;
 }
@@ -127,7 +130,7 @@ body {
   padding: 30px;
   background: #fafafa;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin-top: 25px;
   margin-bottom: 25px;
 }
@@ -135,11 +138,11 @@ body {
 .registration-form-container h1 {
   text-align: center;
   color: #4400ff;
-  margin-bottom: 20px;  
+  margin-bottom: 20px;
 }
 
-.cursor-pointer{
-  cursor: pointer;  
+.cursor-pointer {
+  cursor: pointer;
 }
 
 .login-form-container h1 {
@@ -148,7 +151,6 @@ body {
   margin-bottom: 20px;
 }
 
-/* Form */
 .registration-form {
   display: flex;
   flex-direction: column;
@@ -179,11 +181,11 @@ body {
 .form-group input:focus {
   border-color: #bcffda;
   outline: none;
-  box-shadow: 0 0 5px rgba(255,87,34,0.3);
+  box-shadow: 0 0 5px rgba(255, 87, 34, 0.3);
 }
 
 .password-toggle-button {
-  background:none;
+  background: none;
   border: none;
   position: absolute;
   right: 20px;
@@ -214,7 +216,7 @@ body {
   left: 0;
 }
 
-.h1-cool{
+.h1-cool {
   color: #ff5722;
 }
 
@@ -239,7 +241,7 @@ body {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.3s; 
+  transition: background-color 0.3s, transform 0.3s;
 }
 
 .home-button {
@@ -251,7 +253,7 @@ body {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.3s; 
+  transition: background-color 0.3s, transform 0.3s;
   margin-left: 10px;
 }
 
@@ -265,7 +267,7 @@ body {
   transform: scale(1.05);
 }
 
-.home-button:hover{
+.home-button:hover {
   background-color: #1d2cff;
   transform: scale(1.05);
 }
@@ -302,7 +304,7 @@ body {
   left: 0;
   bottom: 0;
   transform: translateX(0);
-  z-index: 1;
+  z-index: 1000; /* Ensure it's above other content */
   overflow-y: auto;
 }
 
@@ -359,6 +361,10 @@ body {
   display: none;
 }
 
+.main-content {
+  margin-left: 250px; /* Align content next to side nav */
+  padding: 20px;
+}
 
 @media (max-width: 600px) {
   .form-group input {
@@ -406,30 +412,29 @@ body {
   }
 
   .nav-toggle-btn {
-    display: block; /* Show bar icon on smaller screens */
+    display: block;
   }
 
-  .user-info{
+  .user-info {
     order: 1;
   }
 
-  .top-bar{
+  .top-bar {
     justify-content: space-between;
   }
 }
 
 .custom-swal-timer {
-  background-color:chartreuse; 
+  background-color: chartreuse;
 }
 
-.custom-swal-button{
+.custom-swal-button {
   width: 100px;
 }
 
 .custom-swal-backdrop {
   background-color: #b5faff;
 }
-
 
 .animation {
   display: flex;
@@ -459,9 +464,8 @@ body {
   100% {
     opacity: 1.0;
   }
-} 
+}
 
-/* Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
