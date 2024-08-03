@@ -12,13 +12,11 @@ function Index() {
   return (
     <div className="app">
       <div className={`side-nav ${isNavOpen ? "open" : ""}`}>
-        <button className="close-btn" onClick={toggleNav}>
-          &times;
-        </button>
         <ul>
+          <li><a href="#home">Home</a></li>
           <li><a href="#my-requests">My Requests</a></li>
-          <li><a href="#available-events">Available Events</a></li>
           <li><a href="#pending-requests">Pending Requests</a></li>
+          <li><a href="#available-events">Available Events</a></li>
           <li><a href="#registered-events">Registered Events</a></li>
         </ul>
         <div className="sign-out">
