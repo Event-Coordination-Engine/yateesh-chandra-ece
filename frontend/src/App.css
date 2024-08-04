@@ -8,6 +8,10 @@ body {
   background-color: #b5faff;
 }
 
+::-webkit-scrollbar{
+  scrollbar-width: none;
+}
+
 .hero-section {
   background-color: #55f4faf6;
   text-align: center;
@@ -86,7 +90,6 @@ body {
   padding: 50px 20px;
   background-color: #f4f4f4;
   margin-top: 50px; /* Align content below the top bar */
-  margin-left: 250px; /* Width of side nav */
 }
 
 .feature {
@@ -297,7 +300,7 @@ body {
 
 .side-nav {
   width: 250px;
-  background-color: #43e9ff;
+  background-color: #0090a3;
   transition: transform 0.3s ease;
   position: fixed;
   top: 45px;
@@ -320,13 +323,13 @@ body {
 }
 
 .side-nav ul li a {
-  color: rgb(0, 0, 0);
+  color: rgb(255, 255, 255);
   text-decoration: none;
   font-weight: 500;
 }
 
 .side-nav ul li:hover {
-  background-color: rgb(165, 179, 255);
+  background-color: rgb(113, 50, 150);
   cursor: pointer;
 }
 

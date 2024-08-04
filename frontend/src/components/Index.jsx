@@ -4,6 +4,7 @@ import TopBar from "./TopBar";
 import { useNavigate } from "react-router-dom";
 import eventService from "../services/eventService";
 import EventCard from "../events/EventCard";
+import SweetAlert from "../sweetalerts/SweetAlert";
 
 
 function Index() {
@@ -12,13 +13,23 @@ function Index() {
   const role = localStorage.getItem("role");
   const phone = localStorage.getItem("phone");
   const email = localStorage.getItem("email");
+  
+  const [events, setEvents] = useState([]);
+  const navigate = useNavigate();
 
   const toggleNav = () => {
     setIsNavOpen(!isNavOpen);
   };
 
-  const [events, setEvents] = useState([]);
-  const navigate = useNavigate();
+  const handleSignout = () => {
+    SweetAlert.signOutAlert(
+        () => {localStorage.clear();
+            setTimeout(() => {
+                navigate("/");
+            }, 1500);
+        }
+    , "Signing out");
+    };
 
   useEffect(() => {
     getEventByUser();
@@ -40,13 +51,13 @@ function Index() {
       <div className={`side-nav ${isNavOpen ? "open" : ""}`}>
         <ul>
           <li><a href="#home">Home</a></li>
-          <li><a href="#my-requests">My Requests</a></li>
+          <li><a href="#my-requests">My Events</a></li>
           <li><a href="#pending-requests">Pending Requests</a></li>
           <li><a href="#available-events">Available Events</a></li>
           <li><a href="#registered-events">Registered Events</a></li>
         </ul>
         <div className="sign-out">
-          <button><FaPowerOff /> Sign Out</button>
+          <button onClick={handleSignout}><FaPowerOff /> Sign Out</button>
         </div>
       </div>
       <div className="main-content">
