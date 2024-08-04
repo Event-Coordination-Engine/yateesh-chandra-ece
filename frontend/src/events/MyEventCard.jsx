@@ -1,8 +1,11 @@
 import React from "react";
-import "./EventCard.css"; // Import CSS specific to event cards
+import "./EventCard.css";
 
 const EventCard = ({ event }) => {
+
+  
   return (
+
     <div className="event-card">
       <h3 className="event-title">{event.event_title}</h3>
       <p className="event-description">{event.event_description}</p>

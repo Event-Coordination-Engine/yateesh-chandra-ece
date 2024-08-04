@@ -1,20 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { FaPowerOff } from "react-icons/fa";
-import TopBar from "./TopBar";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import eventService from "../services/eventService";
-import EventCard from "../events/EventCard";
+import TopBar from "./TopBar";
+import SideNavBar from "../components/SideNavBar";
 import SweetAlert from "../sweetalerts/SweetAlert";
-
+import MyEvents from "../events/MyEvents";
+import PendingRequests from "../events/PendingRequests";
 
 function Index() {
   const [isNavOpen, setIsNavOpen] = useState(false);
-  const id = localStorage.getItem("id");
-  const role = localStorage.getItem("role");
-  const phone = localStorage.getItem("phone");
-  const email = localStorage.getItem("email");
-  
-  const [events, setEvents] = useState([]);
+  const [activeLink, setActiveLink] = useState("home");
+
   const navigate = useNavigate();
 
   const toggleNav = () => {
@@ -23,54 +18,40 @@ function Index() {
 
   const handleSignout = () => {
     SweetAlert.signOutAlert(
-        () => {localStorage.clear();
-            setTimeout(() => {
-                navigate("/");
-            }, 1500);
-        }
-    , "Signing out");
-    };
+      () => {
+        localStorage.clear();
+        setTimeout(() => {
+          navigate("/");
+        }, 1500);
+      },
+      "Signing out"
+    );
+  };
 
-  useEffect(() => {
-    getEventByUser();
-  }, []);
-
-  const getEventByUser = async () => {
-    try {
-      await eventService.getEventByUserId(id).then((response) => {
-        console.log(response);
-        setEvents(response?.data?.body);
-      });
-    } catch (error) {
-      console.log(error);
+  const renderContent = () => {
+    switch (activeLink) {
+      case "my-events":
+        return <MyEvents />;
+      case "pending-requests":
+        return <PendingRequests />;
+      default:
+        return <h1>Welcome to the Event Management System!</h1>;
     }
   };
 
   return (
     <div className="app">
-      <div className={`side-nav ${isNavOpen ? "open" : ""}`}>
-        <ul>
-          <li><a href="#home">Home</a></li>
-          <li><a href="#my-requests">My Events</a></li>
-          <li><a href="#pending-requests">Pending Requests</a></li>
-          <li><a href="#available-events">Available Events</a></li>
-          <li><a href="#registered-events">Registered Events</a></li>
-        </ul>
-        <div className="sign-out">
-          <button onClick={handleSignout}><FaPowerOff /> Sign Out</button>
-        </div>
-      </div>
+      <SideNavBar
+        isNavOpen={isNavOpen}
+        activeLink={activeLink}
+        setActiveLink={setActiveLink}
+        handleSignout={handleSignout}
+      />
       <div className="main-content">
         <header className="app-header">
           <TopBar fun={toggleNav} />
         </header>
-        <div className="content">
-          <div className="events-container">
-            {events.map((event, index) => (
-              <EventCard key={index} event={event} />
-            ))}
-          </div>
-        </div>
+        <div className="content">{renderContent()}</div>
       </div>
     </div>
   );

@@ -333,6 +333,10 @@ body {
   cursor: pointer;
 }
 
+.side-nav ul li.active {
+  background-color: rgb(4, 2, 134);
+}
+
 .sign-out {
   position: absolute;
   bottom: 20px;

@@ -284,6 +284,13 @@ def get_event_by_user_id(user_id : int, db : db_dependency):
         raise HTTPException(status_code=404, detail = "No event organised by this user")
     return {"status_code" : 200, "body" : result}
 
+@app.get("/event_by_user/pending/{user_id}")
+def get_event_by_user_id(user_id : int, db : db_dependency):
+    result = db.query(Event).filter(Event.organizer_id == user_id).filter(Event.status == "pending").all()
+    if result is None:
+        raise HTTPException(status_code=404, detail = "No event organised by this user")
+    return {"status_code" : 200, "body" : result}
+
 @app.put("/approve-event/{event_id}")
 def approve_event(event_id : int, db : db_dependency):
     result = db.query(Event).filter(Event.event_id == event_id).first()
