@@ -5,6 +5,7 @@ import SideNavBar from "../components/SideNavBar";
 import SweetAlert from "../sweetalerts/SweetAlert";
 import MyEvents from "../events/MyEvents";
 import PendingRequests from "../events/PendingRequests";
+import RequestEventPage from "../events/RequestEventPage";
 
 function Index() {
   const [isNavOpen, setIsNavOpen] = useState(false);
@@ -34,6 +35,8 @@ function Index() {
         return <MyEvents />;
       case "pending-requests":
         return <PendingRequests />;
+      case "home":
+          return <RequestEventPage />;
       default:
         return <h1>Welcome to the Event Management System!</h1>;
     }

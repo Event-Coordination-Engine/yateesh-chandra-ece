@@ -11,6 +11,10 @@ class EventServices{
     getPendingEventsByUserId(user_id){
         return axios.get(EVENT_URL + "/event_by_user/pending/" + user_id);
     }
+
+    createEvent(body){
+        return axios.post(EVENT_URL + "/create-event", body);
+    }
 }
 
 export default new EventServices();

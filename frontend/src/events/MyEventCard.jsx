@@ -12,7 +12,7 @@ const MyEventCard = ({ event }) => {
     <div
       className={`event-card ${expanded ? "expanded" : ""}`}
       onClick={toggleExpanded}
-    >
+    >        
       <h3 className="event-title">{event.event_title}</h3>
       <div
         className="event-status"
@@ -41,6 +41,10 @@ const MyEventCard = ({ event }) => {
           </div>
         </div>
       )}
+        <div className="event-actions">
+          <button className="edit-btn">Edit</button>
+          <button className="delete-btn">Delete</button>
+        </div>
     </div>
   );
 };
