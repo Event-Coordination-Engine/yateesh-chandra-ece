@@ -1,4 +1,5 @@
-import React from "react";
+// MyEventCard.jsx
+import React, { useState } from "react";
 import "./EventCard.css";
 
 const EventCard = ({ event }) => {
