@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import eventService from "../services/eventService";
-import EventCard from "../events/MyEventCard";
+import MyEventCard from "../events/MyEventCard";
 
 const PendingRequests = () => {
   const [events, setEvents] = useState([]);
@@ -24,7 +24,7 @@ const PendingRequests = () => {
       <h1 className="events-heading">Pending Requests</h1>
       <div className="events-container">
         {events.map((event, index) => (
-          <EventCard key={index} event={event} />
+          <MyEventCard key={index} event={event} />
         ))}
       </div>
     </div>

@@ -15,6 +15,10 @@ class EventServices{
     createEvent(body){
         return axios.post(EVENT_URL + "/create-event", body);
     }
+
+    deleteEvent(id){
+        return axios.delete(EVENT_URL + "/delete-event/" + id);
+    }
 }
 
 export default new EventServices();
