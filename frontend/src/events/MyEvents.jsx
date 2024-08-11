@@ -1,4 +1,3 @@
-// MyEvents.jsx
 import React, { useState, useEffect } from "react";
 import eventService from "../services/eventService";
 import EventCard from "../events/MyEventCard";

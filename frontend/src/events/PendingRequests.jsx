@@ -6,16 +6,17 @@ const PendingRequests = () => {
   const [events, setEvents] = useState([]);
   const id = localStorage.getItem("id");
 
+  const fetchPendingEvents = async () => {
+    try {
+      const response = await eventService.getPendingEventsByUserId(id);
+      setEvents(response?.data?.body || []);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // Use effect to fetch events on component mount and id change
   useEffect(() => {
-    const fetchPendingEvents = async () => {
-      try {
-        const response = await eventService.getPendingEventsByUserId(id);
-        console.log(response);
-        setEvents(response?.data?.body);
-      } catch (error) {
-        console.log(error);
-      }
-    };
     fetchPendingEvents();
   }, [id]);
 
@@ -24,7 +25,7 @@ const PendingRequests = () => {
       <h1 className="events-heading">Pending Requests</h1>
       <div className="events-container">
         {events.map((event, index) => (
-          <MyEventCard key={index} event={event} sourcePage="pending-requests"/>
+          <MyEventCard key={index} event={event} refreshEvents={fetchPendingEvents} sourcePage="pending-requests"/>
         ))}
       </div>
     </div>

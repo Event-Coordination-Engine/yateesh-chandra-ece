@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./RequestEventPage.css";
 import eventService from "../services/eventService";
+import Swal from "sweetalert2";
 
 const RequestEventPage = () => {
     const id = localStorage.getItem("id");
@@ -23,18 +24,39 @@ const RequestEventPage = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = async(e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        try{
-            formData.date_of_event = convertDateFormat(formData.date_of_event);
-            await eventService.createEvent(formData)
-            console.log("Event Added")
-        } catch(err){
+        
+        try {
+            // Create a new object with the updated date format
+            const updatedFormData = {
+                ...formData,
+                date_of_event: convertDateFormat(formData.date_of_event),
+            };
+    
+            // Call the API with the updated form data
+            await eventService.createEvent(updatedFormData);
+            
+            console.log("Event Added");
+            
+            Swal.fire({
+                title: "Event Added",
+                icon: "success",
+                timer: 1500,
+                showConfirmButton: false,
+            });
+        } catch (err) {
+            Swal.fire({
+                title: "Unable to add event",
+                text: err.response.data.detail,
+                icon: "error",
+            });
             console.log(err);
         }
+        
         console.log("Form submitted:", formData);
     };
-
+    
     return (
         <div className="request-event-page">
         <h1 className="page-heading">Event Form</h1>
@@ -86,7 +108,7 @@ const RequestEventPage = () => {
             <div className="form-group">
             <label htmlFor="capacity">Capacity</label>
             <input
-                type="text"
+                type="number"
                 id="capacity"
                 name="capacity"
                 value={formData.capacity}
