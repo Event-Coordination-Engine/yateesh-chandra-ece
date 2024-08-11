@@ -1,11 +1,12 @@
-// MyEventCard.jsx
 import React, { useState } from "react";
 import "./EventCard.css";
 import eventService from "../services/eventService";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
-const MyEventCard = ({ event, refreshEvents }) => {
+const MyEventCard = ({ event, refreshEvents, sourcePage }) => {
     const [expanded, setExpanded] = useState(false);
+    const navigate = useNavigate(); 
 
     const toggleExpanded = () => {
         setExpanded(!expanded);
@@ -14,12 +15,12 @@ const MyEventCard = ({ event, refreshEvents }) => {
     const deleteMethod = async (id) => {
         try {
             await eventService.deleteEvent(id);
-            Swal.fire(
-              {title : 'Deleted!', 
-              text : 'Your event has been deleted.', 
-              icon : 'success',
-              timer : 2000,
-              showConfirmButton : false
+            Swal.fire({
+                title: 'Deleted!',
+                text: 'Your event has been deleted.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
             });
             // Call the refresh function to update the list of events
             refreshEvents();
@@ -32,7 +33,7 @@ const MyEventCard = ({ event, refreshEvents }) => {
     const handleDelete = (id) => {
         Swal.fire({
             title: "Delete Event?",
-            text: "Once Deleted, It is gone for Good!",
+            text: "Once deleted, it is gone for good!",
             icon: 'warning',
             confirmButtonText: "Delete",
             showCancelButton: true,
@@ -45,7 +46,7 @@ const MyEventCard = ({ event, refreshEvents }) => {
     };
 
     const handleEdit = () => {
-        // Implement the edit logic
+        navigate(`/dashboard/edit-event/${event.event_id}`, { state: { from: sourcePage } }); // Navigate to the EditEventPage with the event ID
     };
 
     return (

@@ -95,7 +95,7 @@ const RequestEventPage = () => {
             />
             </div>
             <div className="form-group">
-            <label htmlFor="event_description">event_description</label>
+            <label htmlFor="event_description">Event description</label>
             <textarea
                 id="event_description"
                 name="event_description"

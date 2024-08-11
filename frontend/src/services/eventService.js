@@ -19,6 +19,14 @@ class EventServices{
     deleteEvent(id){
         return axios.delete(EVENT_URL + "/delete-event/" + id);
     }
+
+    updateEvent(id, body){
+        return axios.put(EVENT_URL + "/event/" + id, body)
+    }
+
+    getEventById(id){
+        return axios.get(EVENT_URL + "/event/" + id)
+    }
 }
 
 export default new EventServices();

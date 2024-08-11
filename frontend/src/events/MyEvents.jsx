@@ -27,7 +27,7 @@ const MyEvents = () => {
       <h1 className="events-heading">My Events..!</h1>
       <div className="events-container">
         {events.map((event, index) => (
-          <EventCard key={index} event={event} refreshEvents={fetchEvents} />
+          <EventCard key={index} event={event} refreshEvents={fetchEvents} sourcePage="my-events"/>
         ))}
       </div>
     </div>

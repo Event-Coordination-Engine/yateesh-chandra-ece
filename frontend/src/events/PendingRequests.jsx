@@ -24,7 +24,7 @@ const PendingRequests = () => {
       <h1 className="events-heading">Pending Requests</h1>
       <div className="events-container">
         {events.map((event, index) => (
-          <MyEventCard key={index} event={event} />
+          <MyEventCard key={index} event={event} sourcePage="pending-requests"/>
         ))}
       </div>
     </div>
