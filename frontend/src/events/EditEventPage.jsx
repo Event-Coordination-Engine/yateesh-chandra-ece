@@ -71,6 +71,12 @@ const EditEventPage = () => {
             });
         } catch (err) {
             console.log(err);
+            Swal.fire({
+                title: err.response.data.body,
+                timer: 1500,
+                showConfirmButton: false,
+                icon: "error"
+            })
         }
         console.log("Form submitted:", formData);
     };
