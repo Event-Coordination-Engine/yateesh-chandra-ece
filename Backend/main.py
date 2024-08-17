@@ -297,7 +297,7 @@ def approve_event(event_id : int, db : db_dependency):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins = ["http://localhost:3000"],
+    allow_origins = ["http://localhost:3000", "http://localhost:5000"],
     allow_credentials = True,
     allow_methods = ["*"],
     allow_headers = ["*"],

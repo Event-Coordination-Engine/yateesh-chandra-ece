@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom"; // Import useParams hook
+import { useParams, useLocation, useNavigate } from "react-router-dom"; // Import hooks
 import eventService from "../services/eventService";
+import Swal from "sweetalert2";
 
 const EditEventPage = () => {
-    const { eventId } = useParams(); // Get event ID from URL parameters
+    const { eventId } = useParams();
+    const location = useLocation();
+    const navigate = useNavigate();
     const organizerId = localStorage.getItem("id");
-    console.log(eventId);
+    
+    // Retrieve the source page from location state
+    const { state } = location;
+    console.log(state)
+    const sourcePage = state?.from || "/"; // Default to "/" if no sourcePage is provided
+    console.log(sourcePage)
+
     const [formData, setFormData] = useState({
         event_title: "",
         date_of_event: "",
@@ -21,7 +30,6 @@ const EditEventPage = () => {
             try {
                 const response = await eventService.getEventById(eventId);
                 const event = response.data.body;
-                console.log(event)
                 setFormData({
                     event_title: event.event_title,
                     date_of_event: convertDateFormat(event.date_of_event),
@@ -39,8 +47,8 @@ const EditEventPage = () => {
     }, [eventId]);
 
     function convertDateFormat(dateStr) {
-      const [year, month, day] = dateStr.split('-');
-      return `${day}-${month}-${year}`;
+        const [year, month, day] = dateStr.split('-');
+        return `${day}-${month}-${year}`;
     }
 
     const handleChange = (e) => {
@@ -52,7 +60,15 @@ const EditEventPage = () => {
         try {
             formData.date_of_event = convertDateFormat(formData.date_of_event);
             await eventService.updateEvent(eventId, formData);
-            console.log("Event Updated");
+            Swal.fire({
+                title: "Event Updated",
+                timer: 1400,
+                showConfirmButton: false,
+                icon: "success"
+            }).then(() => {
+                // Redirect back to the source page
+                navigate(`/dashboard/${sourcePage}`);
+            });
         } catch (err) {
             console.log(err);
         }
