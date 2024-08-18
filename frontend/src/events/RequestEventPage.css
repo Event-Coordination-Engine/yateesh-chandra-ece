@@ -39,6 +39,7 @@
     width: 100%;
     padding: 10px;
     border: 1px solid #ddd;
+    font-family: "Garamond", serif;
     border-radius: 5px;
     font-size: 1em;
   }
@@ -49,6 +50,7 @@
     border: 1px solid #ddd;
     border-radius: 5px;
     font-size: 1em;
+    font-family: "Garamond", serif;
   }
   
   .form-group input:focus,

@@ -143,7 +143,7 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
 
         conflicting_event = db.query(Event).filter(
             Event.date_of_event == event_date,
-            Event.location == create_event_obj.location,
+            Event.location == create_event_obj.location.lower(),
             Event.time_of_event.between(start_time_window.time().strftime('%H:%M'), end_time_window.time().strftime('%H:%M'))
         ).first()
 
@@ -156,7 +156,7 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
                              time_of_event = event_time,
                              date_of_event = event_date,
                              organizer_id = create_event_obj.organizer_id,
-                             location = create_event_obj.location,
+                             location = create_event_obj.location.lower(),
                              capacity = create_event_obj.capacity,
                              request_timestamp = datetime.now()
                              )
@@ -166,7 +166,7 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
                              time_of_event = event_time,
                              date_of_event = event_date,
                              organizer_id = create_event_obj.organizer_id,
-                             location = create_event_obj.location,
+                             location = create_event_obj.location.lower(),
                              capacity = create_event_obj.capacity,
                              request_timestamp = datetime.now(),
                              approved_timestamp = datetime.now(),
@@ -212,7 +212,7 @@ def update_event(update_event_obj: EventUpdateDTO, event_id: int, db: db_depende
 
         conflicting_event = db.query(Event).filter(
             Event.date_of_event == event_date,
-            Event.location == update_event_obj.location,
+            Event.location == update_event_obj.location.lower(),
             Event.event_id != event_id,  # Exclude current event
             Event.time_of_event.between(start_time_window.time().strftime('%H:%M'), end_time_window.time().strftime('%H:%M'))
         ).first()
@@ -226,7 +226,7 @@ def update_event(update_event_obj: EventUpdateDTO, event_id: int, db: db_depende
     result.time_of_event = event_time
     result.date_of_event = event_date
     result.organizer_id = update_event_obj.organizer_id
-    result.location = update_event_obj.location
+    result.location = update_event_obj.location.lower()
     result.capacity = update_event_obj.capacity
     result.request_timestamp = datetime.now()
 
