@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from database import Base, SessionLocal, engine
-from dto import UserRegistrationDTO, UserLoginDTO, UserResponseDTO, EventCreateDTO, EventUpdateDTO
-from model import Base, User, Event
+from dto import UserRegistrationDTO, UserLoginDTO, UserResponseDTO, EventCreateDTO, EventUpdateDTO, RegisterForEvent
+from model import Base, User, Event, Attendee
 from typing import Annotated
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
@@ -294,6 +294,38 @@ def approve_event(event_id : int, db : db_dependency):
     result.status = "approved"
     db.commit()
     return {"status_code" : 200, "message" : "event approved"}
+
+@app.post("/register_event", status_code=201)
+def register_for_event(reg_dto : RegisterForEvent , db : db_dependency):
+    user_check = db.query(User).filter(User.user_id == reg_dto.user_id).first()
+    if user_check is None :
+        raise HTTPException(status_code=404, detail=f"User with User ID : {reg_dto.user_id} does not exist")
+    elif user_check.privilege == "ADMIN":
+        raise HTTPException(status_code=409, detail="Admins cannot register for an event")
+    
+    event_check = db.query(Event).filter(Event.event_id == reg_dto.event_id).first()
+    if event_check is None :
+        raise HTTPException(status_code=404, detail=f"Event with Event ID : {reg_dto.event_id} does not exist")
+    elif event_check.organizer_id == reg_dto.user_id:
+        raise HTTPException(status_code=409, detail="Cannot register since user is organiser")
+    
+    email_check = db.query(Attendee).filter(Attendee.email == reg_dto.email).first()
+    if email_check :
+        raise HTTPException(status_code=409, detail="Email Already registered")
+    if not reg_dto.email.strip() :
+        raise HTTPException(status_code=400, detail= "Email can not be empty")
+    if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",reg_dto.email) : 
+        raise HTTPException(status_code=400, detail= "Invalid Email Format")
+    
+
+    registration_obj = Attendee(user_id = reg_dto.user_id,
+                                attendee_name = reg_dto.attendee_name,
+                                email = reg_dto.email,
+                                phone = reg_dto.phone,
+                                event_id = reg_dto.event_id)
+    db.add(registration_obj)
+    db.commit()
+    return {"status_code" : 201, "message" : "Registered for the event successfully"}
 
 app.add_middleware(
     CORSMiddleware,

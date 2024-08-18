@@ -1,4 +1,3 @@
-from model import User
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
@@ -40,3 +39,10 @@ class EventUpdateDTO(BaseModel):
     organizer_id : int
     location : str
     capacity : int
+
+class RegisterForEvent(BaseModel):
+    user_id : int
+    attendee_name : str
+    email : str
+    phone : str = None
+    event_id : int
