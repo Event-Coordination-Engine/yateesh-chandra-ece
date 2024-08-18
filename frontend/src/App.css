@@ -373,6 +373,37 @@ body {
   padding: 20px;
 }
 
+.unauthorized-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f8d7da; /* Light red background */
+  font-family: Arial, sans-serif;
+}
+
+.unauthorized-content {
+  text-align: center;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 90%;
+}
+
+.unauthorized-content h1 {
+  color: #dc3545; /* Red color for error */
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.unauthorized-content p {
+  color: #333;
+  font-size: 1.25rem;
+  margin-bottom: 20px;
+}
+
 @media (max-width: 600px) {
   .form-group input {
     width: 100%;
