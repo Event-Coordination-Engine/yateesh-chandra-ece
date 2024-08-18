@@ -83,23 +83,7 @@ const Login = () => {
             localStorage.setItem("name", response.data.body.name);
             localStorage.setItem("email", response.data.body.email);
             localStorage.setItem("phone", response.data.body.phone);
-
-            Swal.fire({
-                position: 'center',
-                allowOutsideClick: false,
-                color: "#297c02",
-                html: `<div class="animation">Signing you in<span class="dot1">.</span><span class="dot2">.</span><span class="dot3">.!</span></div>`,
-                showConfirmButton: false,
-                background: "#fafafa",
-                timer: 2000,
-                width: 500,
-                timerProgressBar: true,
-                backdrop: `#b5faff`,
-                customClass: {
-                  timerProgressBar: "custom-swal-timer",
-                },
-              });
-
+            SweetAlert.loginSuccessSwal("Signing you in")
             navigate("/dashboard");
             
 

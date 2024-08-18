@@ -96,10 +96,13 @@ def register_user(user_obj : UserRegistrationDTO, db : db_dependency):
 @app.post("/user/login", status_code=200)
 def login_user(user_login_obj : UserLoginDTO, db : db_dependency) :
     db_user = db.query(User).filter(User.email == user_login_obj.email).first()
+
     if not db_user : 
         raise HTTPException(status_code=401, detail = "Unregistered Email")
     if not verify_password(user_login_obj.password, db_user.password) :
         raise HTTPException(status_code=401, detail = "Invalid Credentials")
+    if db_user.last_name is None:
+        db_user.last_name = ""
     user_passon_dto = UserResponseDTO(email=db_user.email,
                                       user_id = db_user.user_id,
                                       name = db_user.first_name + " " + db_user.last_name,
@@ -131,7 +134,6 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
     if e_title is not None :
         raise HTTPException(status_code=409, detail = "Event Name already Exists..!")
 
-
     if create_event_obj.location != "online":
 
         event_datetime = datetime.strptime(f"{create_event_obj.date_of_event} {create_event_obj.time_of_event}", '%d-%m-%Y %H:%M')
@@ -141,7 +143,7 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
 
         conflicting_event = db.query(Event).filter(
             Event.date_of_event == event_date,
-            Event.location == create_event_obj.location,
+            Event.location == create_event_obj.location.lower(),
             Event.time_of_event.between(start_time_window.time().strftime('%H:%M'), end_time_window.time().strftime('%H:%M'))
         ).first()
 
@@ -154,7 +156,7 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
                              time_of_event = event_time,
                              date_of_event = event_date,
                              organizer_id = create_event_obj.organizer_id,
-                             location = create_event_obj.location,
+                             location = create_event_obj.location.lower(),
                              capacity = create_event_obj.capacity,
                              request_timestamp = datetime.now()
                              )
@@ -164,7 +166,7 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
                              time_of_event = event_time,
                              date_of_event = event_date,
                              organizer_id = create_event_obj.organizer_id,
-                             location = create_event_obj.location,
+                             location = create_event_obj.location.lower(),
                              capacity = create_event_obj.capacity,
                              request_timestamp = datetime.now(),
                              approved_timestamp = datetime.now(),
@@ -175,72 +177,65 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
     return {"status_code" : 201, "message" : "Event successfully created"}
 
 @app.put("/event/{event_id}")
-def update_event(update_event_obj : EventUpdateDTO,event_id : int, db : db_dependency):
+def update_event(update_event_obj: EventUpdateDTO, event_id: int, db: db_dependency):
     result = db.query(Event).filter(Event.event_id == event_id).first()
-    if result is None :
+    if result is None:
         raise HTTPException(status_code=404, detail="No Event found with Id")
 
     event_date = validate_event_date(update_event_obj.date_of_event)
     event_time = validate_event_time(update_event_obj.time_of_event)
-    
+
     db_user = db.query(User).filter(update_event_obj.organizer_id == User.user_id).first()
-    if not db_user : 
-        raise HTTPException(status_code=404, detail="User has no previlege to organize event")
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User has no privilege to organize event")
     if len(update_event_obj.event_title.strip()) == 0:
         raise HTTPException(status_code=400, detail="Event Title is mandatory")
     if len(update_event_obj.event_description.strip()) == 0:
         raise HTTPException(status_code=400, detail="Event Description is mandatory")
     if len(update_event_obj.time_of_event.strip()) == 0:
         raise HTTPException(status_code=400, detail="Time is mandatory")
-    if (len(update_event_obj.location.strip()) == 0) :
-        raise HTTPException(status_code=400, detail="Location can not be empty")
-    
-    e_title = db.query(Event).filter(Event.event_title == update_event_obj.event_title).first()
-    if e_title is not None :
-        raise HTTPException(status_code=409, detail = "Event Name already Exists..!")
+    if len(update_event_obj.location.strip()) == 0:
+        raise HTTPException(status_code=400, detail="Location cannot be empty")
 
+    e_title = db.query(Event).filter(
+        Event.event_title == update_event_obj.event_title,
+        Event.event_id != event_id  # Exclude current event
+    ).first()
+    if e_title is not None:
+        raise HTTPException(status_code=409, detail="Event Name already Exists..!")
 
     if update_event_obj.location != "online":
-
         event_datetime = datetime.strptime(f"{update_event_obj.date_of_event} {update_event_obj.time_of_event}", '%d-%m-%Y %H:%M')
-        
+
         start_time_window = event_datetime - timedelta(hours=3)
         end_time_window = event_datetime + timedelta(hours=3)
 
         conflicting_event = db.query(Event).filter(
             Event.date_of_event == event_date,
-            Event.location == update_event_obj.location,
+            Event.location == update_event_obj.location.lower(),
+            Event.event_id != event_id,  # Exclude current event
             Event.time_of_event.between(start_time_window.time().strftime('%H:%M'), end_time_window.time().strftime('%H:%M'))
         ).first()
 
         if conflicting_event is not None:
             raise HTTPException(status_code=409, detail="Unable to update since there is a conflicting event.")
 
-    if db_user.privilege == "USER" :
-        event_update_dto = Event(event_title = update_event_obj.event_title,
-                             event_description = update_event_obj.event_description,
-                             time_of_event = event_time,
-                             date_of_event = event_date,
-                             organizer_id = update_event_obj.organizer_id,
-                             location = update_event_obj.location,
-                             capacity = update_event_obj.capacity,
-                             request_timestamp = datetime.now()
-                             )
-    else :
-        event_update_dto = Event(event_title = update_event_obj.event_title,
-                             event_description = update_event_obj.event_description,
-                             time_of_event = event_time,
-                             date_of_event = event_date,
-                             organizer_id = update_event_obj.organizer_id,
-                             location = update_event_obj.location,
-                             capacity = update_event_obj.capacity,
-                             request_timestamp = datetime.now(),
-                             approved_timestamp = datetime.now(),
-                             status = 'approved'
-                             )
-    db.add(event_update_dto)
+    # Update the existing event with the new data
+    result.event_title = update_event_obj.event_title
+    result.event_description = update_event_obj.event_description
+    result.time_of_event = event_time
+    result.date_of_event = event_date
+    result.organizer_id = update_event_obj.organizer_id
+    result.location = update_event_obj.location.lower()
+    result.capacity = update_event_obj.capacity
+    result.request_timestamp = datetime.now()
+
+    if db_user.privilege != "USER":
+        result.approved_timestamp = datetime.now()
+        result.status = 'approved'
+
     db.commit()
-    return {"status_code" : 200, "message" : "Event successfully updated"}
+    return {"status_code": 200, "message": "Event successfully updated"}
 
 # Get All Events Function
 @app.get("/all-events")
@@ -281,6 +276,13 @@ def get_event_by_user_id(user_id : int, db : db_dependency):
         raise HTTPException(status_code=404, detail = "No event organised by this user")
     return {"status_code" : 200, "body" : result}
 
+@app.get("/event_by_user/pending/{user_id}")
+def get_event_by_user_id(user_id : int, db : db_dependency):
+    result = db.query(Event).filter(Event.organizer_id == user_id).filter(Event.status == "pending").all()
+    if result is None:
+        raise HTTPException(status_code=404, detail = "No event organised by this user")
+    return {"status_code" : 200, "body" : result}
+
 @app.put("/approve-event/{event_id}")
 def approve_event(event_id : int, db : db_dependency):
     result = db.query(Event).filter(Event.event_id == event_id).first()
@@ -295,7 +297,7 @@ def approve_event(event_id : int, db : db_dependency):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins = ["http://localhost:3000"],
+    allow_origins = ["http://localhost:3000", "http://localhost:5000"],
     allow_credentials = True,
     allow_methods = ["*"],
     allow_headers = ["*"],

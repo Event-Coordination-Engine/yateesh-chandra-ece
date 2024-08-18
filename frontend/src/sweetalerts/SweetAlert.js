@@ -23,18 +23,40 @@ class SweetAlert{
         Swal.fire({
           position: 'center',
           allowOutsideClick: false,
+          color: "#297c02",
           html: `<div class="animation">${tag}<span class="dot1">.</span><span class="dot2">.</span><span class="dot3">.!</span></div>`,
           showConfirmButton: false,
-          background: "rgb(240, 240, 240)",
-          timer: 1800,
+          background: "#fafafa",
+          timer: 2000,
           width: 500,
           timerProgressBar: true,
-          backdrop: `linear-gradient(90deg, rgba(156,255,251,1) 0%, rgba(238,255,167,1) 35%, rgba(150,255,158,1) 100%)`,
+          backdrop: `#b5faff`,
           customClass: {
             timerProgressBar: "custom-swal-timer",
           },
         });
       };
+
+      signOutAlert(method, tag){
+        Swal.fire({
+          title : 'Sign Out ?',
+          text : 'Are you sure you want to Sign out?',
+          icon : 'warning',
+          showConfirmButton : true,
+          confirmButtonText : "Yes, Signout",
+          showDenyButton : true,
+          denyButtonText : 'Nope, Hold on',
+          timerProgressBar: true,
+          customClass: {
+            timerProgressBar: "custom-swal-timer",
+          },
+      }).then((result) => {
+          if(result.isConfirmed){
+            method()  
+            this.loginSuccessSwal(tag);
+          } 
+      })
+      }
 }
 
 export default new SweetAlert();

@@ -1,0 +1,147 @@
+/* EventCard.css */
+.events-heading {
+  text-align: center;
+  font-size: 2em;
+  color: #333;
+  font-weight: bold;
+  margin-top: 30px;
+}
+
+.events-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 0px;
+  position: relative; /* For the blur effect */
+}
+
+.event-card {
+  background: #e4edffe3;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(68, 0, 255, 0.514);
+  margin: 10px;
+  width: calc(33% - 20px);
+  max-width: 300px;
+  padding: 20px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, width 0.3s ease;
+  cursor: pointer;
+  position: relative; /* Position for child elements */
+  z-index: 1; /* Ensure it is above the blur background */
+}
+
+.event-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.event-card.expanded {
+  width: 80%; /* Wider view when expanded */
+  max-width: none; /* Remove max-width constraint */
+  margin: 0 auto; /* Center the card */
+  z-index: 1000; /* Ensure it stays on top */
+}
+
+.event-title {
+  font-size: 1.5em;
+  color: #333;
+  margin-top: 5px;
+  font-weight: bold;
+}
+
+.event-status {
+  font-size: 1em;
+  color: #555;
+  margin-bottom: 15px;
+}
+
+.event-description {
+  color: #666;
+  font-size: 1em;
+  margin-bottom: 20px;
+}
+
+.event-details {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  color: #555;
+}
+
+.event-location, .event-capacity {
+  font-size: 0.9em;
+  color: #888;
+}
+
+.event-details-expanded {
+  margin-top: 20px;
+}
+
+.events-container::before {
+  content: "";
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none; /* Prevent interactions */
+}
+
+.event-card.expanded ~ .events-container::before {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .event-card {
+    width: calc(50% - 20px);
+  }
+
+  .events-heading {
+    margin-top: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .event-card {
+    width: calc(100% - 20px);
+  }
+
+  .events-heading {
+    margin-top: 40px;
+  }
+}
+
+.event-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.edit-btn, .delete-btn {
+  border: none;
+  background-color: #007bff;
+  color: #fff;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: background-color 0.3s ease;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+}
+
+.edit-btn:hover {
+  background-color: #0056b3;
+}
+
+.delete-btn:hover {
+  background-color: #c82333;
+}
