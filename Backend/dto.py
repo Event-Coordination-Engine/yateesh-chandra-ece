@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, date
 
 # DTO for User Registration
 class UserRegistrationDTO(BaseModel) : 
@@ -46,3 +46,17 @@ class RegisterForEvent(BaseModel):
     email : str
     phone : str = None
     event_id : int
+
+class GetRegisteredUserDTO(BaseModel):
+    user_id : int
+    attendee_name : str
+    email : str
+    phone : str | None
+    event_name : str
+    registration_date : str
+
+class GetUsersForEventDTO(BaseModel):
+    attendee_name : str
+    email : str
+    phone : str | None
+    registration_date : str

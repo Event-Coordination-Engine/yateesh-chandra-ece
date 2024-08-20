@@ -1,9 +1,10 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from database import Base, SessionLocal, engine
-from dto import UserRegistrationDTO, UserLoginDTO, UserResponseDTO, EventCreateDTO, EventUpdateDTO, RegisterForEvent
+from dto import UserRegistrationDTO, UserLoginDTO, UserResponseDTO,\
+    EventCreateDTO, EventUpdateDTO, RegisterForEvent, GetRegisteredUserDTO, GetUsersForEventDTO
 from model import Base, User, Event, Attendee
-from typing import Annotated
+from typing import Annotated, List
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from auth import get_password_hash, verify_password
@@ -331,6 +332,41 @@ def register_for_event(reg_dto : RegisterForEvent , db : db_dependency):
     db.add(registration_obj)
     db.commit()
     return {"status_code" : 201, "message" : "Registered for the event successfully"}
+
+@app.get("/registered_event/users/{user_id}")
+def get_registered_events_by_event_id(user_id: int, db: db_dependency):
+
+    result = db.query(Attendee).filter(Attendee.user_id == user_id).all()
+
+    return_dto: List[GetRegisteredUserDTO] = []
+
+    for attendee in result:
+
+        event = db.query(Event).filter(Event.event_id == attendee.event_id).first()
+
+        dto = GetRegisteredUserDTO(
+            attendee_name=attendee.attendee_name,
+            user_id=attendee.user_id,
+            email=attendee.email,
+            phone=attendee.phone,
+            event_name=event.event_title if event else None, 
+            registration_date=datetime.strftime(attendee.registration_timestamp.date(), '%d-%m-%Y')
+        )
+        return_dto.append(dto)
+
+    return {"status": 200, "message": "Events fetched successfully", "body": return_dto}
+
+@app.get("/registered_event/events/{event_id}")
+def get_registered_events_by_event_id(event_id: int, db: db_dependency):
+
+    result = db.query(Attendee).filter(Attendee.event_id == event_id).all()
+    return_dto: List[GetUsersForEventDTO] = [
+        GetUsersForEventDTO(attendee_name=attendee.attendee_name,
+                            email=attendee.email,
+                            phone=attendee.phone,
+                            registration_date=datetime.strftime(attendee.registration_timestamp.date(), '%d-%m-%Y')) for attendee in result
+    ]
+    return {"status": 200, "message": "Registrations fetched successfully", "body": return_dto}
 
 app.add_middleware(
     CORSMiddleware,
