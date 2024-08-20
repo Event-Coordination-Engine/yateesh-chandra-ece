@@ -306,6 +306,8 @@ def register_for_event(reg_dto : RegisterForEvent , db : db_dependency):
     event_check = db.query(Event).filter(Event.event_id == reg_dto.event_id).first()
     if event_check is None :
         raise HTTPException(status_code=404, detail=f"Event with Event ID : {reg_dto.event_id} does not exist")
+    elif event_check.status != 'approved':
+        raise HTTPException(status_code=409, detail="Unable to register since Event is not yet approved")
     elif event_check.organizer_id == reg_dto.user_id:
         raise HTTPException(status_code=409, detail="Cannot register since user is organiser")
     
