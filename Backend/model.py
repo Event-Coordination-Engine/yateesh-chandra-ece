@@ -48,7 +48,7 @@ class Attendee(Base) :
     user_id = Column(Integer, ForeignKey('user.user_id'), nullable=False)
     attendee_name = Column(String, nullable = False)
     email = Column(String, nullable=False)
-    phone = Column(String, nullable=False)
+    phone = Column(String, nullable=True)
     event_id = Column(Integer, ForeignKey('event.event_id'), nullable = False)
     registration_timestamp = Column(DateTime, nullable=True, default=datetime.now())
 
