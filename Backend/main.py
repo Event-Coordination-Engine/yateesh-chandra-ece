@@ -245,13 +245,18 @@ def get_all_events(db : db_dependency) :
     return{"status_code" : 200, "body" : result}
 
 @app.get("/pending-events")
-def get_all_events(db : db_dependency) :
+def get_pending_events(db : db_dependency) :
     result = db.query(Event).filter(Event.status == "pending").all()
     return{"status_code" : 200, "body" : result}
 
 @app.get("/approved-events")
-def get_all_events(db : db_dependency) :
+def get_approved_events(db : db_dependency) :
     result = db.query(Event).filter(Event.status == "approved").all()
+    return{"status_code" : 200, "body" : result}
+
+@app.get("/available-events/{user_id}")
+def get_available_events(user_id : int, db : db_dependency) :
+    result = db.query(Event).filter(Event.status == "approved", Event.organizer_id != user_id).all()
     return{"status_code" : 200, "body" : result}
 
 @app.delete("/delete-event/{event_id}")
@@ -278,7 +283,7 @@ def get_event_by_user_id(user_id : int, db : db_dependency):
     return {"status_code" : 200, "body" : result}
 
 @app.get("/event_by_user/pending/{user_id}")
-def get_event_by_user_id(user_id : int, db : db_dependency):
+def get_pending_event_by_user_id(user_id : int, db : db_dependency):
     result = db.query(Event).filter(Event.organizer_id == user_id).filter(Event.status == "pending").all()
     if result is None:
         raise HTTPException(status_code=404, detail = "No event organised by this user")
