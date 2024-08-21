@@ -9,6 +9,7 @@ import RequestEventPage from "../events/RequestEventPage";
 import EditEventPage from "../events/EditEventPage";
 import Unauthorized from "./Unauthorized";
 import AdminPendingRequests from "../events/AdminPendingRequests";
+import RegisteredEvents from "../events/RegisteredEvents";
 
 function Index() {
   const [isNavOpen, setIsNavOpen] = useState(false);
@@ -48,6 +49,7 @@ function Index() {
             <Route path="my-events" element={<MyEvents />} />
             {userRole === "USER" && (<Route path="pending-requests" element={<PendingRequests />} />)}
             {userRole === "ADMIN" && (<Route path="pending-requests" element={<AdminPendingRequests />} />)}
+            {userRole === "USER" && (<Route path="registered-events" element={<RegisteredEvents />} />)}
             <Route path="edit-event/:eventId" element={<EditEventPage />} />
             {/* Add other routes here */}
           </Routes>

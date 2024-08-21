@@ -346,10 +346,13 @@ def get_registered_events_by_event_id(user_id: int, db: db_dependency):
 
         dto = GetRegisteredUserDTO(
             attendee_name=attendee.attendee_name,
-            user_id=attendee.user_id,
             email=attendee.email,
             phone=attendee.phone,
             event_name=event.event_title if event else None, 
+            event_description=event.event_description,
+            time_of_event=event.time_of_event,
+            date_of_event=event.date_of_event,
+            location=event.location,
             registration_date=datetime.strftime(attendee.registration_timestamp.date(), '%d-%m-%Y')
         )
         return_dto.append(dto)
