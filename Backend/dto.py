@@ -48,10 +48,13 @@ class RegisterForEvent(BaseModel):
     event_id : int
 
 class GetRegisteredUserDTO(BaseModel):
-    user_id : int
     attendee_name : str
     email : str
     phone : str | None
+    event_description :str
+    time_of_event : str
+    date_of_event : str
+    location : str
     event_name : str
     registration_date : str
 
