@@ -22,7 +22,7 @@ const RegisteredEvents = () => {
 
   return (
     <div>
-      <h1 className="events-heading">My Events..!</h1>
+      <h1 className="events-heading">My Registered Events..!</h1>
       <div className="events-container">
         {events.map((event, index) => (
           <RegCard key={index} event={event} />

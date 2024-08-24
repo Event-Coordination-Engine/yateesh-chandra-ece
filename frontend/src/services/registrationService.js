@@ -16,6 +16,14 @@ class RegistrationServices{
         return axios.get(ATTENDEE_URL + "/available-events/" + user_id)
     }
 
+    approvedEvents(){
+        return axios.get(ATTENDEE_URL + "/approved-events")
+    }
+    
+    getAllRegistrations(){
+        return axios.get(ATTENDEE_URL + "/all_registered_events")
+    }
+
 }
 
 export default new RegistrationServices();

@@ -12,6 +12,7 @@ import AdminPendingRequests from "../events/AdminPendingRequests";
 import RegisteredEvents from "../events/RegisteredEvents";
 import EventRegistration from "../events/EventRegistration";
 import UserRegistration from "../events/UserRegistration";
+import AdminRegistrations from "../events/AdminRegistrations";
 
 function Index() {
   const [isNavOpen, setIsNavOpen] = useState(false);
@@ -52,7 +53,8 @@ function Index() {
             {userRole === "USER" && (<Route path="pending-requests" element={<PendingRequests />} />)}
             {userRole === "ADMIN" && (<Route path="pending-requests" element={<AdminPendingRequests />} />)}
             {userRole === "USER" && (<Route path="registered-events" element={<RegisteredEvents />} />)}
-            {userRole === "USER" && (<Route path="available-events" element={<EventRegistration />} />)}
+            {userRole === "ADMIN" && (<Route path="registered-events" element={<AdminRegistrations />} />)}
+            <Route path="available-events" element={<EventRegistration/>}/>
             <Route path="register-event/:eventId" element={<UserRegistration />} />
             <Route path="edit-event/:eventId" element={<EditEventPage />} />
             {/* Add other routes here */}

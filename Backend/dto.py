@@ -63,3 +63,11 @@ class GetUsersForEventDTO(BaseModel):
     email : str
     phone : str | None
     registration_date : str
+
+class GetAllRegistrationsDTO(BaseModel):
+    attendee_name : str
+    email : str
+    phone : str | None
+    registered_by : str
+    registration_date : str
+    event_name : str
