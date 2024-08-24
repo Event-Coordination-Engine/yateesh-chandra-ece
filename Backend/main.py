@@ -2,7 +2,8 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from database import Base, SessionLocal, engine
 from dto import UserRegistrationDTO, UserLoginDTO, UserResponseDTO,\
-    EventCreateDTO, EventUpdateDTO, RegisterForEvent, GetRegisteredUserDTO, GetUsersForEventDTO
+    EventCreateDTO, EventUpdateDTO, RegisterForEvent, GetRegisteredUserDTO, GetUsersForEventDTO,\
+    GetAllRegistrationsDTO
 from model import Base, User, Event, Attendee
 from typing import Annotated, List
 from sqlalchemy.orm import Session
@@ -245,13 +246,18 @@ def get_all_events(db : db_dependency) :
     return{"status_code" : 200, "body" : result}
 
 @app.get("/pending-events")
-def get_all_events(db : db_dependency) :
+def get_pending_events(db : db_dependency) :
     result = db.query(Event).filter(Event.status == "pending").all()
     return{"status_code" : 200, "body" : result}
 
 @app.get("/approved-events")
-def get_all_events(db : db_dependency) :
+def get_approved_events(db : db_dependency) :
     result = db.query(Event).filter(Event.status == "approved").all()
+    return{"status_code" : 200, "body" : result}
+
+@app.get("/available-events/{user_id}")
+def get_available_events(user_id : int, db : db_dependency) :
+    result = db.query(Event).filter(Event.status == "approved", Event.organizer_id != user_id).all()
     return{"status_code" : 200, "body" : result}
 
 @app.delete("/delete-event/{event_id}")
@@ -278,7 +284,7 @@ def get_event_by_user_id(user_id : int, db : db_dependency):
     return {"status_code" : 200, "body" : result}
 
 @app.get("/event_by_user/pending/{user_id}")
-def get_event_by_user_id(user_id : int, db : db_dependency):
+def get_pending_event_by_user_id(user_id : int, db : db_dependency):
     result = db.query(Event).filter(Event.organizer_id == user_id).filter(Event.status == "pending").all()
     if result is None:
         raise HTTPException(status_code=404, detail = "No event organised by this user")
@@ -301,8 +307,6 @@ def register_for_event(reg_dto : RegisterForEvent , db : db_dependency):
     user_check = db.query(User).filter(User.user_id == reg_dto.user_id).first()
     if user_check is None :
         raise HTTPException(status_code=404, detail=f"User with User ID : {reg_dto.user_id} does not exist")
-    elif user_check.privilege == "ADMIN":
-        raise HTTPException(status_code=409, detail="Admins cannot register for an event")
     
     event_check = db.query(Event).filter(Event.event_id == reg_dto.event_id).first()
     if event_check is None :
@@ -313,11 +317,14 @@ def register_for_event(reg_dto : RegisterForEvent , db : db_dependency):
         raise HTTPException(status_code=409, detail="Cannot register since user is organiser")
     
     email_check = db.query(Attendee).filter(Attendee.email == reg_dto.email).first()
+    event_check_dup = db.query(Attendee).filter(Attendee.event_id == reg_dto.event_id).first()
+    if event_check_dup :
+        if email_check :
+            raise HTTPException(status_code=409, detail="Email Already registered")
     event_count = db.query(Attendee).filter(Attendee.event_id == reg_dto.event_id).count()
     if event_count >= event_check.capacity:
         raise HTTPException(status_code=409, detail="Cannot Register since max Capacity reached")
-    if email_check :
-        raise HTTPException(status_code=409, detail="Email Already registered")
+
     if not reg_dto.email.strip() :
         raise HTTPException(status_code=400, detail= "Email can not be empty")
     if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",reg_dto.email) : 
@@ -370,6 +377,34 @@ def get_registered_events_by_event_id(event_id: int, db: db_dependency):
                             registration_date=datetime.strftime(attendee.registration_timestamp.date(), '%d-%m-%Y')) for attendee in result
     ]
     return {"status": 200, "message": "Registrations fetched successfully", "body": return_dto}
+
+@app.get("/all_registered_events")
+def get_all_registered_events(db: db_dependency):
+
+    result = db.query(Attendee).filter(Attendee.user_id == Event.organizer_id).all()
+
+    return_dto: List[GetAllRegistrationsDTO] = []
+
+    for attendee in result:
+
+        event = db.query(Event).filter(Event.event_id == attendee.event_id).first()
+        user = db.query(User).filter(User.user_id == attendee.user_id).first()
+
+        user_name = user.first_name
+        if user.last_name:
+            user_name = user_name + ' ' + user.last_name
+
+        dto = GetAllRegistrationsDTO(
+            attendee_name=attendee.attendee_name,
+            email=attendee.email,
+            phone=attendee.phone,
+            registration_date=datetime.strftime(attendee.registration_timestamp.date(), '%d-%m-%Y'),
+            registered_by=user_name,
+            event_name=event.event_title if event else None
+        )
+        return_dto.append(dto)
+
+    return {"status": 200, "message": "All Events fetched successfully", "body": return_dto}
 
 app.add_middleware(
     CORSMiddleware,

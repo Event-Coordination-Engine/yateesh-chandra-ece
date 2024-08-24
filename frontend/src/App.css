@@ -404,6 +404,75 @@ body {
   margin-bottom: 20px;
 }
 
+.table-container {
+  width: 98%;
+  overflow-x: auto;
+  padding: 4px;
+  /* box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #f9f9f9; */
+  border-radius: 10px;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.styled-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Arial', sans-serif;
+  margin: 25px 0;
+  font-size: 0.9em;
+  background-color: white;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.styled-table thead tr {
+  background-color: #009879;
+  color: #ffffff;
+  text-align: left;
+}
+
+.styled-table th, .styled-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #dddddd;
+}
+
+.styled-table tbody tr {
+  transition: background-color 0.3s ease-in-out;
+}
+
+.styled-table tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+.styled-table tbody tr:nth-of-type(even) {
+  background-color: #f3f3f3;
+}
+
+.styled-table tbody tr:last-of-type {
+  border-bottom: 2px solid #009879;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .styled-table {
+    font-size: 0.8em;
+  }
+}
+
+@media (max-width: 480px) {
+  .styled-table th, .styled-table td {
+    padding: 10px 12px;
+  }
+}
+
+
 @media (max-width: 600px) {
   .form-group input {
     width: 100%;

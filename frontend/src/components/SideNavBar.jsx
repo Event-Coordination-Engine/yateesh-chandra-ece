@@ -18,7 +18,7 @@ const SideNavBar = ({ isNavOpen, handleSignout }) => {
         <li className={(location.pathname === "/dashboard/pending-requests" || fromPage === "pending-requests") ? "active" : ""}>
           <Link to="/dashboard/pending-requests">Pending Requests</Link>
         </li>
-        <li className={location.pathname === "/dashboard/available-events" ? "active" : ""}>
+        <li className={(location.pathname === "/dashboard/available-events" || fromPage === "available-events") ? "active" : ""}>
           <Link to="/dashboard/available-events">Available Events</Link>
         </li>
         <li className={location.pathname === "/dashboard/registered-events" ? "active" : ""}>
