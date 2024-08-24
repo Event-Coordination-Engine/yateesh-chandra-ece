@@ -318,11 +318,14 @@ def register_for_event(reg_dto : RegisterForEvent , db : db_dependency):
         raise HTTPException(status_code=409, detail="Cannot register since user is organiser")
     
     email_check = db.query(Attendee).filter(Attendee.email == reg_dto.email).first()
+    event_check_dup = db.query(Attendee).filter(Attendee.event_id == reg_dto.event_id).first()
+    if event_check_dup :
+        if email_check :
+            raise HTTPException(status_code=409, detail="Email Already registered")
     event_count = db.query(Attendee).filter(Attendee.event_id == reg_dto.event_id).count()
     if event_count >= event_check.capacity:
         raise HTTPException(status_code=409, detail="Cannot Register since max Capacity reached")
-    if email_check :
-        raise HTTPException(status_code=409, detail="Email Already registered")
+
     if not reg_dto.email.strip() :
         raise HTTPException(status_code=400, detail= "Email can not be empty")
     if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",reg_dto.email) : 

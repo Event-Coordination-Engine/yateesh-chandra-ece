@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import "./RequestEventPage.css";
 import Swal from "sweetalert2";
 import registrationService from "../services/registrationService";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const UserRegistration = () => {
     const { eventId } = useParams();
     const id = localStorage.getItem("id");
+    const navigate = useNavigate()
     const [formData, setFormData] = useState({
         attendee_name: "",
         email : "",
@@ -18,6 +19,10 @@ const UserRegistration = () => {
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
+
+    const navigateBack = () =>{
+        navigate("/dashboard/available-events");
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -31,7 +36,7 @@ const UserRegistration = () => {
                 icon: "success",
                 timer: 1500,
                 showConfirmButton: false,
-            });
+            }).then(navigateBack);
         } catch (err) {
             Swal.fire({
                 title: "Unable to register for event",
@@ -81,7 +86,10 @@ const UserRegistration = () => {
                 required
             />
             </div>
-            <button type="submit" className="submit-btn">Submit Request</button>
+            <div className="event-actions">
+                <button type="submit" className="edit-btn">Enroll</button>
+                <button className="delete-btn" onClick={navigateBack}>Cancel</button>
+            </div>
         </form>
         </div>
     );

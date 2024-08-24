@@ -18,17 +18,20 @@ const EventRegCard = ({ event, sourcePage }) => {
             className={`event-card ${expanded ? "expanded" : ""}`}
             onClick={toggleExpanded}
         >
-            <h3 className="event-title">{event.event_title}</h3>
+            <h3 style={{
+                    color: "green"
+                }} className="event-title">{event.event_title}</h3>
+            <div className="event-details">
+                <div className="event-detail">
+                    <strong>Date:</strong> {event.date_of_event}
+                </div>
+                <div className="event-detail">
+                    <strong>Time:</strong> {event.time_of_event}
+                </div>
+            </div>
             {expanded && (
                 <div className="expanded-content">
-                    <p className="event-description">{event.event_description}</p>
                     <div className="event-details">
-                        <div className="event-detail">
-                            <strong>Date:</strong> {event.date_of_event}
-                        </div>
-                        <div className="event-detail">
-                            <strong>Time:</strong> {event.time_of_event}
-                        </div>
                         <div className="event-detail">
                             <strong>Location:</strong> {event.location}
                         </div>
@@ -36,6 +39,7 @@ const EventRegCard = ({ event, sourcePage }) => {
                             <strong>Capacity:</strong> {event.capacity}
                         </div>
                     </div>
+                    <p className="event-description"><b>Description :</b> {event.event_description}</p>
                 </div>
             )}
             <div className="button-action">
