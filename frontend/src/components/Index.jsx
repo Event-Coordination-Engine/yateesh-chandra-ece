@@ -13,58 +13,70 @@ import RegisteredEvents from "../events/RegisteredEvents";
 import EventRegistration from "../events/EventRegistration";
 import UserRegistration from "../events/UserRegistration";
 import AdminRegistrations from "../events/AdminRegistrations";
+import userService from "../services/userService";
 
 function Index() {
-  const [isNavOpen, setIsNavOpen] = useState(false);
-  const userRole = localStorage.getItem("role");
+    const [isNavOpen, setIsNavOpen] = useState(false);
+    const userRole = localStorage.getItem("role");
+    const logId = localStorage.getItem("log_id");
 
-  const toggleNav = () => {
-    setIsNavOpen(!isNavOpen);
-  };
+    const toggleNav = () => {
+        setIsNavOpen(!isNavOpen);
+    };
 
-  const handleSignout = () => {
-    SweetAlert.signOutAlert(
-      () => {
-        localStorage.clear();
-        setTimeout(() => {
-          window.location.href = "/"; // Redirect to home after sign out
-        }, 1500);
-      },
-      "Signing out"
-    );
-  };
+    const logout = () => {
+        try{
+          const res = userService.logoutUser(logId);
+          console.log(res);
+        }
+        catch(err){
+          console.log(err)
+        }
+    }
 
-  return (
-    <div className="app">
-      {userRole === "ADMIN" || userRole === "USER" ? (
-        <>
-        <SideNavBar
-        isNavOpen={isNavOpen}
-        handleSignout={handleSignout}
-      />
-      <div className="main-content">
-        <header className="app-header">
-          <TopBar fun={toggleNav} />
-        </header>
-        <div className="content">
-          <Routes>
-            <Route path="/" element={<RequestEventPage />} />
-            <Route path="my-events" element={<MyEvents />} />
-            {userRole === "USER" && (<Route path="pending-requests" element={<PendingRequests />} />)}
-            {userRole === "ADMIN" && (<Route path="pending-requests" element={<AdminPendingRequests />} />)}
-            {userRole === "USER" && (<Route path="registered-events" element={<RegisteredEvents />} />)}
-            {userRole === "ADMIN" && (<Route path="registered-events" element={<AdminRegistrations />} />)}
-            <Route path="available-events" element={<EventRegistration/>}/>
-            <Route path="register-event/:eventId" element={<UserRegistration />} />
-            <Route path="edit-event/:eventId" element={<EditEventPage />} />
-            {/* Add other routes here */}
-          </Routes>
+    const handleSignout = () => {
+        SweetAlert.signOutAlert(
+            () => {
+                localStorage.clear();
+                logout();
+                setTimeout(() => {
+                    window.location.href = "/"; // Redirect to home after sign out
+                }, 1500);
+            },
+            "Signing out"
+        );
+    };
+
+    return (
+        <div className="app">
+            {userRole === "ADMIN" || userRole === "USER" ? (
+                <>
+                <SideNavBar
+                isNavOpen={isNavOpen}
+                handleSignout={handleSignout}
+            />
+            <div className="main-content">
+                <header className="app-header">
+                    <TopBar fun={toggleNav} />
+                </header>
+                <div className="content">
+                    <Routes>
+                        <Route path="/" element={<RequestEventPage />} />
+                        <Route path="my-events" element={<MyEvents />} />
+                        {userRole === "USER" && (<Route path="pending-requests" element={<PendingRequests />} />)}
+                        {userRole === "ADMIN" && (<Route path="pending-requests" element={<AdminPendingRequests />} />)}
+                        {userRole === "USER" && (<Route path="registered-events" element={<RegisteredEvents />} />)}
+                        {userRole === "ADMIN" && (<Route path="registered-events" element={<AdminRegistrations />} />)}
+                        <Route path="available-events" element={<EventRegistration/>}/>
+                        <Route path="register-event/:eventId" element={<UserRegistration />} />
+                        <Route path="edit-event/:eventId" element={<EditEventPage />} />
+                    </Routes>
+                </div>
+            </div>
+            </>):
+            (<div><Unauthorized/></div>)}
         </div>
-      </div>
-      </>):
-      (<div><Unauthorized/></div>)}
-    </div>
-  );
+    );
 }
 
 export default Index;

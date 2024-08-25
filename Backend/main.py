@@ -4,12 +4,13 @@ from database import Base, SessionLocal, engine
 from dto import UserRegistrationDTO, UserLoginDTO, UserResponseDTO,\
     EventCreateDTO, EventUpdateDTO, RegisterForEvent, GetRegisteredUserDTO, GetUsersForEventDTO,\
     GetAllRegistrationsDTO
-from model import Base, User, Event, Attendee
+from model import Base, User, Event, Attendee, UserLog
 from typing import Annotated, List
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from auth import get_password_hash, verify_password
 import re
+from sqlalchemy import update
 
 app = FastAPI()
 
@@ -96,21 +97,46 @@ def register_user(user_obj : UserRegistrationDTO, db : db_dependency):
     return {"status_code" : 201 , "message" : "User Successfully Registered"}
 
 @app.post("/user/login", status_code=200)
-def login_user(user_login_obj : UserLoginDTO, db : db_dependency) :
+def login_user(user_login_obj : UserLoginDTO, db : db_dependency):
     db_user = db.query(User).filter(User.email == user_login_obj.email).first()
 
-    if not db_user : 
-        raise HTTPException(status_code=401, detail = "Unregistered Email")
-    if not verify_password(user_login_obj.password, db_user.password) :
-        raise HTTPException(status_code=401, detail = "Invalid Credentials")
+    if not db_user:
+        raise HTTPException(status_code=401, detail="Unregistered Email")
+    if not verify_password(user_login_obj.password, db_user.password):
+        raise HTTPException(status_code=401, detail="Invalid Credentials")
     if db_user.last_name is None:
         db_user.last_name = ""
-    user_passon_dto = UserResponseDTO(email=db_user.email,
-                                      user_id = db_user.user_id,
-                                      name = db_user.first_name + " " + db_user.last_name,
-                                      phone = db_user.phone,
-                                      privilege= db_user.privilege)
-    return {"status_code" : 200, "message" : "Successfully Logged in..!", "body" : user_passon_dto}
+
+    db.query(UserLog).filter(UserLog.user_id == db_user.user_id, UserLog.logout_tstmp == None).update(
+        {UserLog.logout_tstmp: datetime.now()},
+        synchronize_session=False
+    )
+    db.commit()
+
+    # Create a new login session
+    login_obj = UserLog(user_id=db_user.user_id, login_tstmp=datetime.now())
+    db.add(login_obj)
+    db.commit()
+
+    user_passon_dto = UserResponseDTO(
+        email=db_user.email,
+        user_id=db_user.user_id,
+        name=db_user.first_name + " " + db_user.last_name,
+        phone=db_user.phone,
+        log_id=login_obj.log_id,
+        privilege=db_user.privilege
+    )
+
+    return {"status_code": 200, "message": "Successfully Logged in..!", "body": user_passon_dto}
+
+@app.put("/user/logout/{log_id}")
+def logout_user(log_id : int, db:db_dependency):
+    user_obj = db.query(UserLog).filter(UserLog.log_id == log_id).first()
+    if user_obj is None : 
+        raise HTTPException(status_code=401, detail="No Active Session found")
+    user_obj.logout_tstmp = datetime.now()
+    db.commit()
+    return {"status_code" : 200, "message" : "Suceessfully Logged out"}
 
 #-#-#-#-#-# EVENT API #-#-#-#-#-#
 # Create Event Function 
@@ -405,6 +431,20 @@ def get_all_registered_events(db: db_dependency):
         return_dto.append(dto)
 
     return {"status": 200, "message": "All Events fetched successfully", "body": return_dto}
+
+@app.on_event("shutdown")
+def shutdown_event():
+    db: Session = next(get_db())
+    try:
+        records_to_update = db.query(UserLog).filter(UserLog.logout_tstmp.is_(None)).all()
+        
+        for record in records_to_update:
+            record.logout_tstmp = datetime.now()
+        
+        db.commit()
+    except Exception as e:
+        db.rollback()  # Rollback in case of any errors
+        print(f"Error during shutdown event: {e}")
 
 app.add_middleware(
     CORSMiddleware,

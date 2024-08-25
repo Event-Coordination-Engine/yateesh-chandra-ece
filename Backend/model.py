@@ -55,5 +55,12 @@ class Attendee(Base) :
     events = relationship('Event', back_populates='event_attendee')
     users = relationship('User', back_populates='attendees')
 
+# Create a User Log Relation
+class UserLog(Base):
+    
+    __tablename__ = "user_log"
 
-
+    log_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, nullable = False)
+    login_tstmp = Column(DateTime, nullable = False, default= datetime.now())
+    logout_tstmp = Column(DateTime, nullable= True)
