@@ -159,6 +159,11 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
     if (len(create_event_obj.location.strip()) == 0) :
         raise HTTPException(status_code=400, detail="Location can not be empty")
     
+    if create_event_obj.capacity :
+        raise HTTPException(status_code=400, detail="Capacity can not be empty")
+    elif create_event_obj.capacity <= 0 :
+        raise HTTPException(status_code=400, detail="Capacity can not be zero or invalid")
+    
     e_title = db.query(Event).filter(Event.event_title == create_event_obj.event_title).first()
     if e_title is not None :
         raise HTTPException(status_code=409, detail = "Event Name already Exists..!")
