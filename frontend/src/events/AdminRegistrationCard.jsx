@@ -15,17 +15,18 @@ const AdminRegistrationCard = ({ events }) => {
           </tr>
         </thead>
         <tbody>
-          {events.map((event, index) => (
-            <tr key={index}>
-              <td>{event.attendee_name}</td>
-              <td>{event.email}</td>
-              <td>{event.phone}</td>
-              <td>{event.registered_by}</td>
-              <td>{event.registration_date}</td>
-              <td>{event.event_name}</td>
-            </tr>
-          ))}
-        </tbody>
+  {events.map((event, index) => (
+    <tr key={index}>
+      <td data-label="Attendee Name">{event.attendee_name}</td>
+      <td data-label="Email">{event.email}</td>
+      <td data-label="Phone">{event.phone}</td>
+      <td data-label="Registered By">{event.registered_by}</td>
+      <td data-label="Registration Date">{event.registration_date}</td>
+      <td data-label="Event Name">{event.event_name}</td>
+    </tr>
+  ))}
+</tbody>
+
       </table>
     </div>
   );
