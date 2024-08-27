@@ -90,6 +90,7 @@ def register_user(user_obj : UserRegistrationDTO, db : db_dependency):
                     last_name = user_obj.last_name, 
                     email = user_obj.email,
                     password = encrypted_pwd,
+                    registered_date = datetime.now(),
                     phone = user_obj.phone)
     
     db.add(user_obj)
@@ -157,6 +158,11 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
         raise HTTPException(status_code=400, detail="Time is mandatory")
     if (len(create_event_obj.location.strip()) == 0) :
         raise HTTPException(status_code=400, detail="Location can not be empty")
+    
+    if create_event_obj.capacity :
+        raise HTTPException(status_code=400, detail="Capacity can not be empty")
+    elif create_event_obj.capacity <= 0 :
+        raise HTTPException(status_code=400, detail="Capacity can not be zero or invalid")
     
     e_title = db.query(Event).filter(Event.event_title == create_event_obj.event_title).first()
     if e_title is not None :
@@ -344,6 +350,9 @@ def register_for_event(reg_dto : RegisterForEvent , db : db_dependency):
     
     email_check = db.query(Attendee).filter(Attendee.email == reg_dto.email).first()
     event_check_dup = db.query(Attendee).filter(Attendee.event_id == reg_dto.event_id).first()
+    if email_check is not None : 
+        if email_check.users.privilege == "ADMIN":
+            raise HTTPException(status_code=409, detail="Oops. Admin is blocked from Registration.!")
     if event_check_dup :
         if email_check :
             raise HTTPException(status_code=409, detail="Email Already registered")
@@ -407,7 +416,7 @@ def get_registered_events_by_event_id(event_id: int, db: db_dependency):
 @app.get("/all_registered_events")
 def get_all_registered_events(db: db_dependency):
 
-    result = db.query(Attendee).filter(Attendee.user_id == Event.organizer_id).all()
+    result = db.query(Attendee).all()
 
     return_dto: List[GetAllRegistrationsDTO] = []
 

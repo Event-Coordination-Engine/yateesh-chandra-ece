@@ -405,12 +405,9 @@ body {
 }
 
 .table-container {
-  width: 98%;
+  width: 100%;
   overflow-x: auto;
-  padding: 4px;
-  /* box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: #f9f9f9; */
-  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   animation: fadeIn 1s ease-in-out;
 }
 
@@ -418,21 +415,49 @@ body {
   width: 100%;
   border-collapse: collapse;
   font-family: 'Arial', sans-serif;
-  margin: 25px 0;
-  font-size: 0.9em;
   background-color: white;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 }
 
-.styled-table thead tr {
+.styled-table thead {
   background-color: #009879;
   color: #ffffff;
+}
+
+.styled-table thead th {
+  position: sticky;
+  top: 0;
+  background-color: #009879;
+  padding: 12px 15px;
+  border-bottom: 1px solid #dddddd;
   text-align: left;
+  white-space: nowrap;
+  z-index: 1;
 }
 
 .styled-table th, .styled-table td {
   padding: 12px 15px;
   border-bottom: 1px solid #dddddd;
+  text-align: left;
+  word-wrap: break-word;
+  white-space: normal; /* Allow wrapping within the cell */
+  overflow: hidden; /* Hide overflow text */
+  text-overflow: ellipsis; /* Add ellipsis (...) for overflow text */
+  max-width: 200px; /* Optional: Set a max-width to ensure consistent column sizes */
+  max-height: 500px;
+}
+
+.styled-table tbody {
+  display: block;
+  max-height: 450px; /* Adjust as needed */
+  overflow-y: auto;
+  width: 100%;
+}
+
+.styled-table thead,
+.styled-table tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
 }
 
 .styled-table tbody tr {
@@ -451,6 +476,29 @@ body {
   border-bottom: 2px solid #009879;
 }
 
+
+@media (max-width: 768px) {
+  .styled-table thead {
+    display: none;
+  }
+  .styled-table tr {
+    display: block;
+    margin-bottom: 15px;
+  }
+  .styled-table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border: none;
+    border-bottom: 1px solid #ddd;
+  }
+  .styled-table td::before {
+    content: attr(data-label);
+    font-weight: bold;
+  }
+}
+
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -461,8 +509,9 @@ body {
 }
 
 @media (max-width: 768px) {
-  .styled-table {
-    font-size: 0.8em;
+  .styled-table th, .styled-table td {
+    font-size: 0.8em; /* Adjust based on preference */
+    padding: 8px; /* Reduce padding for smaller screens */
   }
 }
 
