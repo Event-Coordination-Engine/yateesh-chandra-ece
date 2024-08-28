@@ -64,3 +64,24 @@ class UserLog(Base):
     user_id = Column(Integer, nullable = False)
     login_tstmp = Column(DateTime, nullable = False, default= datetime.now())
     logout_tstmp = Column(DateTime, nullable= True)
+
+# Create a Backup Table for event such that Even after the Event is deleted, It stays here in Backup
+class EventBackUp(Base) :
+
+    __tablename__ = "event_bkp"
+
+    event_bkp_gid = Column(Integer, primary_key = True)
+    event_id = Column(Integer, nullable=False)
+    event_title = Column(String, nullable = False)
+    event_description = Column(Text, nullable = False)
+    time_of_event = Column(String, nullable = False)
+    date_of_event = Column(String, nullable = False)
+    organizer_id = Column(Integer, nullable= False)
+    location = Column(String, nullable = False)
+    capacity = Column(Integer, nullable = False)
+    request_timestamp = Column(DateTime, nullable = False)
+    approved_timestamp = Column(DateTime, nullable = True)
+    status = Column(String, nullable = False)
+    latest_op = Column(String, nullable = False)
+    op_tstmp = Column(DateTime, nullable = False, default=datetime.now())
+    flag = Column(String, nullable = False, default="active")
