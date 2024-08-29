@@ -4,13 +4,14 @@ from database import Base, SessionLocal, engine
 from dto import UserRegistrationDTO, UserLoginDTO, UserResponseDTO,\
     EventCreateDTO, EventUpdateDTO, RegisterForEvent, GetRegisteredUserDTO, GetUsersForEventDTO,\
     GetAllRegistrationsDTO
-from model import Base, User, Event, Attendee, UserLog, EventBackUp
+from model import Base, User, Event, Attendee, UserLog, EventBackUp, EventOpsLog
 from typing import Annotated, List
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from auth import get_password_hash, verify_password
 import re
 from sqlalchemy import update
+import json
 
 app = FastAPI()
 
@@ -208,6 +209,7 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
                              )
     db.add(event_create_dto)
     db.commit()
+    x = json.dumps(create_event_obj.dict())
 
     res = db.query(Event).filter(Event.event_title == event_create_dto.event_title).first()
     event_bkp_dto = EventBackUp(
@@ -225,7 +227,9 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
                         latest_op = 'POST',
                         op_tstmp = datetime.now()
                         )
+    log_obj = EventOpsLog(event_id = res.event_id, op_type = "POST", op_desc = x + " is added", op_tstmp = datetime.now())
     db.add(event_bkp_dto)
+    db.add(log_obj)
     db.commit()
     return {"status_code" : 201, "message" : "Event successfully created"}
 
@@ -233,6 +237,26 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
 def update_event(update_event_obj: EventUpdateDTO, event_id: int, db: db_dependency):
     result = db.query(Event).filter(Event.event_id == event_id).first()
     result_bkp = db.query(EventBackUp).filter(EventBackUp.event_id == event_id).first()
+    print(update_event_obj.date_of_event)
+    update_dict = update_event_obj.dict()
+
+    # Convert result (Event model instance) to a dictionary
+    result_dict = {key: value for key, value in result.__dict__.items() if not key.startswith('_')}
+
+    changes = []
+    for key, update_value in update_dict.items():
+        result_value = result_dict.get(key)
+        if update_value != result_value:
+            changes.append(f"{key} changed from {result_value} to {update_value}")
+
+    # Prepare the message
+    if changes:
+        message = ", ".join(changes)
+    else:
+        message = "No Changes Done"
+
+    print(message)
+
     if result is None:
         raise HTTPException(status_code=404, detail="No Event found with Id")
 
@@ -291,6 +315,8 @@ def update_event(update_event_obj: EventUpdateDTO, event_id: int, db: db_depende
         result.approved_timestamp = result_bkp.approved_timestamp = datetime.now()
         result.status = result_bkp.status = 'approved'
 
+    log_obj = EventOpsLog(event_id = event_id, op_type = "PUT", op_desc = message , op_tstmp = datetime.now())
+    db.add(log_obj)
     db.commit()
     return {"status_code": 200, "message": "Event successfully updated"}
 
@@ -325,6 +351,8 @@ def delete_event(event_id : int, db:db_dependency):
     if result is None:
         raise HTTPException(status_code=404, detail="No Event with id found")
     db.delete(result)
+    log_obj = EventOpsLog(event_id = event_id, op_type = "DELETE", op_desc = "This Event is Deleted" , op_tstmp = datetime.now())
+    db.add(log_obj)
     db.commit()
     return { "status_code" : 200, "message" : "Event deleted Successfully"}
 
@@ -352,12 +380,15 @@ def get_pending_event_by_user_id(user_id : int, db : db_dependency):
 @app.put("/approve-event/{event_id}")
 def approve_event(event_id : int, db : db_dependency):
     result = db.query(Event).filter(Event.event_id == event_id).first()
+    result_bkp = db.query(EventBackUp).filter(EventBackUp.event_id == event_id).first()
     if result is None :
         raise HTTPException(status_code=404, detail="No event with Id")
     if result.status == "approved":
         raise HTTPException(status_code=409, detail="This event is already approved")
-    result.approved_timestamp = datetime.now()
-    result.status = "approved"
+    result.approved_timestamp = result_bkp.approved_timestamp = datetime.now()
+    result.status = result_bkp.status = "approved"
+    log_obj = EventOpsLog(event_id = event_id, op_type = "PUT", op_desc = "Your event got approved by admin" , op_tstmp = datetime.now())
+    db.add(log_obj)
     db.commit()
     return {"status_code" : 200, "message" : "event approved"}
 

@@ -85,3 +85,12 @@ class EventBackUp(Base) :
     latest_op = Column(String, nullable = False)
     op_tstmp = Column(DateTime, nullable = False, default=datetime.now())
     flag = Column(String, nullable = False, default="active")
+
+class EventOpsLog(Base):
+    __tablename__ = "event_ops_log"
+
+    op_gid = Column(Integer, primary_key = True)
+    event_id = Column(Integer, nullable=False)
+    op_type = Column(String, nullable=False)
+    op_desc = Column(String, nullable=False)
+    op_tstmp = Column(DateTime, nullable = False, default=datetime.now())
