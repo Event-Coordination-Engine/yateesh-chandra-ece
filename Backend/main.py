@@ -4,7 +4,7 @@ from database import Base, SessionLocal, engine
 from dto import UserRegistrationDTO, UserLoginDTO, UserResponseDTO,\
     EventCreateDTO, EventUpdateDTO, RegisterForEvent, GetRegisteredUserDTO, GetUsersForEventDTO,\
     GetAllRegistrationsDTO
-from model import Base, User, Event, Attendee, UserLog, EventBackUp, EventOpsLog
+from model import Base, User, Event, Attendee, UserLog, EventBackUp, EventOpsLog, Attendee_Bkp
 from typing import Annotated, List
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
@@ -429,6 +429,13 @@ def register_for_event(reg_dto : RegisterForEvent , db : db_dependency):
                                 email = reg_dto.email,
                                 phone = reg_dto.phone,
                                 event_id = reg_dto.event_id)
+    reg_obj = Attendee_Bkp( user_id = reg_dto.user_id,
+                            attendee_name = reg_dto.attendee_name,
+                            email = reg_dto.email,
+                            phone = reg_dto.phone,
+                            event_id = reg_dto.event_id,
+                            reg_status = 'active')
+    db.add(reg_obj)
     db.add(registration_obj)
     db.commit()
     return {"status_code" : 201, "message" : "Registered for the event successfully"}

@@ -50,10 +50,22 @@ class Attendee(Base) :
     email = Column(String, nullable=False)
     phone = Column(String, nullable=True)
     event_id = Column(Integer, ForeignKey('event.event_id'), nullable = False)
-    registration_timestamp = Column(DateTime, nullable=True, default=datetime.now())
+    registration_timestamp = Column(DateTime, nullable=False, default=datetime.now())
 
     events = relationship('Event', back_populates='event_attendee')
     users = relationship('User', back_populates='attendees')
+
+class Attendee_Bkp(Base) :
+    __tablename__ = "attendee_bkp"
+
+    reg_sno = Column(Integer, primary_key = True)
+    user_id = Column(Integer, nullable=False)
+    attendee_name = Column(String, nullable = False)
+    email = Column(String, nullable=False)
+    phone = Column(String, nullable=True)
+    event_id = Column(Integer, nullable = False)
+    registration_timestamp = Column(DateTime, nullable=True, default=datetime.now())
+    reg_status = Column(String, nullable = False)
 
 # Create a User Log Relation
 class UserLog(Base):
