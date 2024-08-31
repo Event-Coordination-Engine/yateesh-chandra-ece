@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaEye, FaEyeSlash } from "react-icons/fa";  // Importing eye icons
+import { FaEye, FaEyeSlash } from "react-icons/fa"; 
 import SweetAlert from "../sweetalerts/SweetAlert";
 import userService from "../services/userService";
 import { useNavigate } from "react-router-dom";
@@ -18,17 +18,11 @@ const Login = () => {
         navigate("/")
     }
 
-    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
     const handleEmailChange = (e) => {
         const newEmail = e.target.value;
         setEmail(newEmail);
         if (!newEmail) {
             setEmailError("Email is required");
-        } else if (!emailPattern.test(newEmail)) {
-            setEmailError("Invalid Email Format");
-        } else {
-            setEmailError("");
         }
     };
 
@@ -46,11 +40,6 @@ const Login = () => {
         if (!email) {
             setEmailError("Email is required");
             isValid = false;
-        } else if (!emailPattern.test(email)) {
-            isValid = false;
-            setEmailError("Invalid Email Format detected");
-        } else {
-            setEmailError("");
         }
         
         if (!password) {
@@ -116,7 +105,7 @@ const Login = () => {
             <form onSubmit={handleFormSubmit} className="registration-form">
 
                 <div className="form-group">
-                    <label htmlFor="email">Email</label>
+                    <label htmlFor="email">Email *</label>
                     <input
                         type="email"
                         id="email"
@@ -129,7 +118,7 @@ const Login = () => {
                 </div>
 
                 <div className="form-group">
-                    <label htmlFor="password">Password</label>
+                    <label htmlFor="password">Password *</label>
                     <input
                         type={showPassword ? "text" : "password"}
                         id="password"

@@ -83,6 +83,16 @@ body {
   color: rgb(0, 0, 0);
 }
 
+.home-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.hero-section, .features-section {
+  flex-grow: 1;
+}
+
 .features-section {
   display: flex;
   justify-content: space-around;
