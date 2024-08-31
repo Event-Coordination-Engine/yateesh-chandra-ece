@@ -19,6 +19,7 @@ class UserResponseDTO(BaseModel) :
     user_id : int
     name : str
     phone : str
+    log_id : int
     privilege : str
 
 # DTO for Event

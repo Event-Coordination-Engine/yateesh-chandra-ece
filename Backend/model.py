@@ -50,10 +50,59 @@ class Attendee(Base) :
     email = Column(String, nullable=False)
     phone = Column(String, nullable=True)
     event_id = Column(Integer, ForeignKey('event.event_id'), nullable = False)
-    registration_timestamp = Column(DateTime, nullable=True, default=datetime.now())
+    registration_timestamp = Column(DateTime, nullable=False, default=datetime.now())
 
     events = relationship('Event', back_populates='event_attendee')
     users = relationship('User', back_populates='attendees')
 
+class Attendee_Bkp(Base) :
+    __tablename__ = "attendee_bkp"
 
+    reg_sno = Column(Integer, primary_key = True)
+    user_id = Column(Integer, nullable=False)
+    attendee_name = Column(String, nullable = False)
+    email = Column(String, nullable=False)
+    phone = Column(String, nullable=True)
+    event_id = Column(Integer, nullable = False)
+    registration_timestamp = Column(DateTime, nullable=True, default=datetime.now())
+    reg_status = Column(String, nullable = False)
 
+# Create a User Log Relation
+class UserLog(Base):
+    
+    __tablename__ = "user_log"
+
+    log_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, nullable = False)
+    login_tstmp = Column(DateTime, nullable = False, default= datetime.now())
+    logout_tstmp = Column(DateTime, nullable= True)
+
+# Create a Backup Table for event such that Even after the Event is deleted, It stays here in Backup
+class EventBackUp(Base) :
+
+    __tablename__ = "event_bkp"
+
+    event_bkp_gid = Column(Integer, primary_key = True)
+    event_id = Column(Integer, nullable=False)
+    event_title = Column(String, nullable = False)
+    event_description = Column(Text, nullable = False)
+    time_of_event = Column(String, nullable = False)
+    date_of_event = Column(String, nullable = False)
+    organizer_id = Column(Integer, nullable= False)
+    location = Column(String, nullable = False)
+    capacity = Column(Integer, nullable = False)
+    request_timestamp = Column(DateTime, nullable = False)
+    approved_timestamp = Column(DateTime, nullable = True)
+    status = Column(String, nullable = False)
+    latest_op = Column(String, nullable = False)
+    op_tstmp = Column(DateTime, nullable = False, default=datetime.now())
+    flag = Column(String, nullable = False, default="active")
+
+class EventOpsLog(Base):
+    __tablename__ = "event_ops_log"
+
+    op_gid = Column(Integer, primary_key = True)
+    event_id = Column(Integer, nullable=False)
+    op_type = Column(String, nullable=False)
+    op_desc = Column(String, nullable=False)
+    op_tstmp = Column(DateTime, nullable = False, default=datetime.now())

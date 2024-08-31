@@ -83,6 +83,7 @@ const Login = () => {
             localStorage.setItem("name", response.data.body.name);
             localStorage.setItem("email", response.data.body.email);
             localStorage.setItem("phone", response.data.body.phone);
+            localStorage.setItem("log_id", response.data.body.log_id);
             SweetAlert.loginSuccessSwal("Signing you in")
             navigate("/dashboard");
             

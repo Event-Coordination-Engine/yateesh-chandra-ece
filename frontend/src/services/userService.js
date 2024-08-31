@@ -13,6 +13,10 @@ class UserServices{
         return axios.post(USER_URL + "/login", User);
     }
 
+    logoutUser(log_id){
+        return axios.put(USER_URL + "/logout/" + log_id)
+    }
+
 }
 
 export default new UserServices();
