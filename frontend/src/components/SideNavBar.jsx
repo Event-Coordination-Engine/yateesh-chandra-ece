@@ -9,21 +9,31 @@ const SideNavBar = ({ isNavOpen, handleSignout }) => {
   return (
     <div className={`side-nav ${isNavOpen ? "open" : ""}`}>
       <ul>
-        <li className={location.pathname === "/dashboard" ? "active" : ""}>
-          <Link to="/dashboard">Home</Link>
-        </li>
-        <li className={(location.pathname === "/dashboard/my-events" || fromPage === "my-events") ? "active" : ""}>
-          <Link to="/dashboard/my-events">My Events</Link>
-        </li>
-        <li className={(location.pathname === "/dashboard/pending-requests" || fromPage === "pending-requests") ? "active" : ""}>
-          <Link to="/dashboard/pending-requests">Pending Requests</Link>
-        </li>
-        <li className={(location.pathname === "/dashboard/available-events" || fromPage === "available-events") ? "active" : ""}>
-          <Link to="/dashboard/available-events">Available Events</Link>
-        </li>
-        <li className={location.pathname === "/dashboard/registered-events" ? "active" : ""}>
-          <Link to="/dashboard/registered-events">Registered Events</Link>
-        </li>
+        <Link to="/dashboard">
+          <li className={location.pathname === "/dashboard" ? "active" : ""}>
+            <span>Home</span>
+          </li>
+        </Link>
+        <Link to="/dashboard/my-events">
+          <li className={(location.pathname === "/dashboard/my-events" || fromPage === "my-events") ? "active" : ""}>
+            <span>My Events</span>
+          </li>
+        </Link>
+        <Link to="/dashboard/pending-requests">
+          <li className={(location.pathname === "/dashboard/pending-requests" || fromPage === "pending-requests") ? "active" : ""}>
+            <span>Pending Requests</span>
+          </li>
+        </Link>
+        <Link to="/dashboard/available-events">
+          <li className={(location.pathname === "/dashboard/available-events" || fromPage === "available-events") ? "active" : ""}>
+            <span>Available Events</span>
+          </li>
+        </Link>
+        <Link to="/dashboard/registered-events">
+          <li className={location.pathname === "/dashboard/registered-events" ? "active" : ""}>
+            <span>Registered Events</span>
+          </li>
+        </Link>
       </ul>
       <div className="sign-out">
         <button onClick={handleSignout}><FaPowerOff /> Sign Out</button>

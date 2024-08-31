@@ -19,11 +19,7 @@ const Login = () => {
     }
 
     const handleEmailChange = (e) => {
-        const newEmail = e.target.value;
-        setEmail(newEmail);
-        if (!newEmail) {
-            setEmailError("Email is required");
-        }
+        setEmail(e.target.value);
     };
 
     const handlePasswordChange = (e) => {
