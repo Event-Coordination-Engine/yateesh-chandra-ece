@@ -24,15 +24,18 @@ function Index() {
         setIsNavOpen(!isNavOpen);
     };
 
-    const logout = () => {
-        try{
-          const res = userService.logoutUser(logId);
-          console.log(res);
+    const closeNav = () => {
+        setIsNavOpen(false);
+    };
+
+    const logout = async () => {
+        try {
+            const res = await userService.logoutUser(logId);
+            console.log(res);
+        } catch (err) {
+            console.log(err);
         }
-        catch(err){
-          console.log(err)
-        }
-    }
+    };
 
     const handleSignout = () => {
         SweetAlert.signOutAlert(
@@ -51,30 +54,34 @@ function Index() {
         <div className="app">
             {userRole === "ADMIN" || userRole === "USER" ? (
                 <>
-                <SideNavBar
-                isNavOpen={isNavOpen}
-                handleSignout={handleSignout}
-            />
-            <div className="main-content">
-                <header className="app-header">
-                    <TopBar fun={toggleNav} />
-                </header>
-                <div className="content">
-                    <Routes>
-                        <Route path="/" element={<RequestEventPage />} />
-                        <Route path="my-events" element={<MyEvents />} />
-                        {userRole === "USER" && (<Route path="pending-requests" element={<PendingRequests />} />)}
-                        {userRole === "ADMIN" && (<Route path="pending-requests" element={<AdminPendingRequests />} />)}
-                        {userRole === "USER" && (<Route path="registered-events" element={<RegisteredEvents />} />)}
-                        {userRole === "ADMIN" && (<Route path="registered-events" element={<AdminRegistrations />} />)}
-                        <Route path="available-events" element={<EventRegistration/>}/>
-                        <Route path="register-event/:eventId" element={<UserRegistration />} />
-                        <Route path="edit-event/:eventId" element={<EditEventPage />} />
-                    </Routes>
-                </div>
-            </div>
-            </>):
-            (<div><Unauthorized/></div>)}
+                    <SideNavBar
+                        isNavOpen={isNavOpen}
+                        handleSignout={handleSignout}
+                        toggleNav={toggleNav}
+                        closeNav={closeNav}  // Pass closeNav function
+                    />
+                    <div className="main-content">
+                        <header className="app-header">
+                            <TopBar fun={toggleNav} />
+                        </header>
+                        <div className="content">
+                            <Routes>
+                                <Route path="/" element={<RequestEventPage />} />
+                                <Route path="my-events" element={<MyEvents />} />
+                                {userRole === "USER" && (<Route path="pending-requests" element={<PendingRequests />} />)}
+                                {userRole === "ADMIN" && (<Route path="pending-requests" element={<AdminPendingRequests />} />)}
+                                {userRole === "USER" && (<Route path="registered-events" element={<RegisteredEvents />} />)}
+                                {userRole === "ADMIN" && (<Route path="registered-events" element={<AdminRegistrations />} />)}
+                                <Route path="available-events" element={<EventRegistration/>}/>
+                                <Route path="register-event/:eventId" element={<UserRegistration />} />
+                                <Route path="edit-event/:eventId" element={<EditEventPage />} />
+                            </Routes>
+                        </div>
+                    </div>
+                </>
+            ) : (
+                <div><Unauthorized /></div>
+            )}
         </div>
     );
 }
