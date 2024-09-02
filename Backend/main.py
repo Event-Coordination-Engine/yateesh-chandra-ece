@@ -308,6 +308,7 @@ def update_event(update_event_obj: EventUpdateDTO, event_id: int, db: db_depende
     result.location = result_bkp.location = update_event_obj.location.lower()
     result.capacity = result_bkp.capacity = update_event_obj.capacity
     result.request_timestamp = result_bkp.request_timestamp = datetime.now()
+    result.status = result_bkp.status = 'pending'
     result_bkp.latest_op = 'PUT'
     result_bkp.op_tstmp = datetime.now()
 
@@ -345,6 +346,10 @@ def get_available_events(user_id : int, db : db_dependency) :
 def delete_event(event_id : int, db:db_dependency):
     db.query(EventBackUp).filter(EventBackUp.event_id == event_id).update(
         {EventBackUp.flag: "inactive",EventBackUp.latest_op: "DELETE", EventBackUp.op_tstmp:datetime.now()},
+        synchronize_session=False
+    )
+    db.query(Attendee_Bkp).filter(Attendee_Bkp.event_id == event_id).update(
+        {Attendee_Bkp.reg_status: "inactive"},
         synchronize_session=False
     )
     result = db.query(Event).filter(Event.event_id == event_id).first()
@@ -393,52 +398,58 @@ def approve_event(event_id : int, db : db_dependency):
     return {"status_code" : 200, "message" : "event approved"}
 
 @app.post("/register_event", status_code=201)
-def register_for_event(reg_dto : RegisterForEvent , db : db_dependency):
+def register_for_event(reg_dto: RegisterForEvent, db: db_dependency):
     user_check = db.query(User).filter(User.user_id == reg_dto.user_id).first()
-    if user_check is None :
-        raise HTTPException(status_code=404, detail=f"User with User ID : {reg_dto.user_id} does not exist")
+    if user_check is None:
+        raise HTTPException(status_code=404, detail=f"User with User ID: {reg_dto.user_id} does not exist")
     
     event_check = db.query(Event).filter(Event.event_id == reg_dto.event_id).first()
-    if event_check is None :
-        raise HTTPException(status_code=404, detail=f"Event with Event ID : {reg_dto.event_id} does not exist")
+    if event_check is None:
+        raise HTTPException(status_code=404, detail=f"Event with Event ID: {reg_dto.event_id} does not exist")
     elif event_check.status != 'approved':
         raise HTTPException(status_code=409, detail="Unable to register since Event is not yet approved")
     elif event_check.organizer_id == reg_dto.user_id:
-        raise HTTPException(status_code=409, detail="Cannot register since user is organiser")
+        raise HTTPException(status_code=409, detail="Cannot register since user is organizer")
     
-    email_check = db.query(Attendee).filter(Attendee.email == reg_dto.email).first()
-    event_check_dup = db.query(Attendee).filter(Attendee.event_id == reg_dto.event_id).first()
-    if email_check is not None : 
+    # Check if the email is already registered for the same event
+    email_check = db.query(Attendee).filter(Attendee.email == reg_dto.email, Attendee.event_id == reg_dto.event_id).first()
+    if email_check is not None:
         if email_check.users.privilege == "ADMIN":
             raise HTTPException(status_code=409, detail="Oops. Admin is blocked from Registration.!")
-    if event_check_dup :
-        if email_check :
-            raise HTTPException(status_code=409, detail="Email Already registered")
+        raise HTTPException(status_code=409, detail="Email already registered for this event")
+
     event_count = db.query(Attendee).filter(Attendee.event_id == reg_dto.event_id).count()
     if event_count >= event_check.capacity:
-        raise HTTPException(status_code=409, detail="Cannot Register since max Capacity reached")
+        raise HTTPException(status_code=409, detail="Cannot register since max Capacity reached")
 
-    if not reg_dto.email.strip() :
-        raise HTTPException(status_code=400, detail= "Email can not be empty")
-    if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",reg_dto.email) : 
-        raise HTTPException(status_code=400, detail= "Invalid Email Format")
-    
+    if not reg_dto.email.strip():
+        raise HTTPException(status_code=400, detail="Email cannot be empty")
+    if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", reg_dto.email):
+        raise HTTPException(status_code=400, detail="Invalid Email Format")
+    if reg_dto.phone:
+        if len(reg_dto.phone) < 10:
+            raise HTTPException(status_code=400, detail="Phone Number should not be less than 10 digits")
 
-    registration_obj = Attendee(user_id = reg_dto.user_id,
-                                attendee_name = reg_dto.attendee_name,
-                                email = reg_dto.email,
-                                phone = reg_dto.phone,
-                                event_id = reg_dto.event_id)
-    reg_obj = Attendee_Bkp( user_id = reg_dto.user_id,
-                            attendee_name = reg_dto.attendee_name,
-                            email = reg_dto.email,
-                            phone = reg_dto.phone,
-                            event_id = reg_dto.event_id,
-                            reg_status = 'active')
+    registration_obj = Attendee(
+        user_id=reg_dto.user_id,
+        attendee_name=reg_dto.attendee_name,
+        email=reg_dto.email,
+        phone=reg_dto.phone,
+        event_id=reg_dto.event_id
+    )
+    reg_obj = Attendee_Bkp(
+        user_id=reg_dto.user_id,
+        attendee_name=reg_dto.attendee_name,
+        email=reg_dto.email,
+        phone=reg_dto.phone,
+        event_id=reg_dto.event_id,
+        reg_status='active'
+    )
     db.add(reg_obj)
     db.add(registration_obj)
     db.commit()
-    return {"status_code" : 201, "message" : "Registered for the event successfully"}
+    return {"status_code": 201, "message": "Registered for the event successfully"}
+
 
 @app.get("/registered_event/users/{user_id}")
 def get_registered_events_by_event_id(user_id: int, db: db_dependency):
