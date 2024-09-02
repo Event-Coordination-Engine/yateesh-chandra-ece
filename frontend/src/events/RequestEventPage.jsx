@@ -62,7 +62,7 @@ const RequestEventPage = () => {
         <h1 className="page-heading">Event Form</h1>
         <form className="request-form" onSubmit={handleSubmit}>
             <div className="form-group">
-            <label htmlFor="event_title">Event Name</label>
+            <label htmlFor="event_title">Event Name *</label>
             <input
                 type="text"
                 id="event_title"
@@ -73,7 +73,7 @@ const RequestEventPage = () => {
             />
             </div>
             <div className="form-group">
-            <label htmlFor="date_of_event">Event Date</label>
+            <label htmlFor="date_of_event">Event Date *</label>
             <input
                 type="date"
                 id="date_of_event"
@@ -84,7 +84,7 @@ const RequestEventPage = () => {
             />
             </div>
             <div className="form-group">
-            <label htmlFor="time_of_event">Event Time</label>
+            <label htmlFor="time_of_event">Event Time *</label>
             <input
                 type="time"
                 id="time_of_event"
@@ -95,7 +95,7 @@ const RequestEventPage = () => {
             />
             </div>
             <div className="form-group">
-            <label htmlFor="location">Location</label>
+            <label htmlFor="location">Location *</label>
             <input
                 type="text"
                 id="location"
@@ -106,7 +106,7 @@ const RequestEventPage = () => {
             />
             </div>
             <div className="form-group">
-            <label htmlFor="capacity">Capacity</label>
+            <label htmlFor="capacity">Capacity *</label>
             <input
                 type="number"
                 id="capacity"
@@ -117,7 +117,7 @@ const RequestEventPage = () => {
             />
             </div>
             <div className="form-group">
-            <label htmlFor="event_description">Event description</label>
+            <label htmlFor="event_description">Event description *</label>
             <textarea
                 id="event_description"
                 name="event_description"

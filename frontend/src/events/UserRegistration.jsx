@@ -54,7 +54,7 @@ const UserRegistration = () => {
         <h1 className="page-heading">Register for event</h1>
         <form className="request-form" onSubmit={handleSubmit}>
             <div className="form-group">
-            <label htmlFor="attendee_name">Attendee Name</label>
+            <label htmlFor="attendee_name">Attendee Name *</label>
             <input
                 type="text"
                 id="attendee_name"
@@ -65,7 +65,7 @@ const UserRegistration = () => {
             />
             </div>
             <div className="form-group">
-            <label htmlFor="email">Email Address</label>
+            <label htmlFor="email">Email Address *</label>
             <input
                 type="text"
                 id="email"

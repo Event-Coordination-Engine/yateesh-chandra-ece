@@ -90,7 +90,7 @@ const EditEventPage = () => {
             <h1 className="page-heading">Edit Event</h1>
             <form className="request-form" onSubmit={handleSubmit}>
                 <div className="form-group">
-                    <label htmlFor="event_title">Event Name</label>
+                    <label htmlFor="event_title">Event Name *</label>
                     <input
                         type="text"
                         id="event_title"
@@ -101,7 +101,7 @@ const EditEventPage = () => {
                     />
                 </div>
                 <div className="form-group">
-                    <label htmlFor="date_of_event">Event Date</label>
+                    <label htmlFor="date_of_event">Event Date *</label>
                     <input
                         type="date"
                         id="date_of_event"
@@ -112,7 +112,7 @@ const EditEventPage = () => {
                     />
                 </div>
                 <div className="form-group">
-                    <label htmlFor="time_of_event">Event Time</label>
+                    <label htmlFor="time_of_event">Event Time *</label>
                     <input
                         type="time"
                         id="time_of_event"
@@ -123,7 +123,7 @@ const EditEventPage = () => {
                     />
                 </div>
                 <div className="form-group">
-                    <label htmlFor="location">Location</label>
+                    <label htmlFor="location">Location *</label>
                     <input
                         type="text"
                         id="location"
@@ -134,7 +134,7 @@ const EditEventPage = () => {
                     />
                 </div>
                 <div className="form-group">
-                    <label htmlFor="capacity">Capacity</label>
+                    <label htmlFor="capacity">Capacity *</label>
                     <input
                         type="text"
                         id="capacity"
@@ -145,7 +145,7 @@ const EditEventPage = () => {
                     />
                 </div>
                 <div className="form-group">
-                    <label htmlFor="event_description">Event Description</label>
+                    <label htmlFor="event_description">Event Description *</label>
                     <textarea
                         id="event_description"
                         name="event_description"

@@ -184,7 +184,7 @@ const Registration = () => {
             <h1 className="h1-cool">Enrollment Form</h1>
             <form onSubmit={handleFormSubmit} className="registration-form">
                 <div className="form-group">
-                    <label htmlFor="first_name">First Name</label>
+                    <label htmlFor="first_name">First Name *</label>
                     <input
                         type="text"
                         id="first_name"
@@ -208,7 +208,7 @@ const Registration = () => {
                 </div>
 
                 <div className="form-group">
-                    <label htmlFor="email">Email</label>
+                    <label htmlFor="email">Email *</label>
                     <input
                         type="email"
                         id="email"
@@ -221,7 +221,7 @@ const Registration = () => {
                 </div>
 
                 <div className="form-group">
-                    <label htmlFor="password">Password</label>
+                    <label htmlFor="password">Password *</label>
                     <input
                         type={showPassword ? "text" : "password"}
                         id="password"
@@ -241,7 +241,7 @@ const Registration = () => {
                 </div>
 
                 <div className="form-group">
-                    <label htmlFor="confirmPassword">Confirm Password</label>
+                    <label htmlFor="confirmPassword">Confirm Password *</label>
                     <input
                         type={showConfirmPassword ? "text" : "password"}
                         id="confirmPassword"
@@ -261,7 +261,7 @@ const Registration = () => {
                 </div>
 
                 <div className="form-group">
-                    <label htmlFor="phone">Phone number</label>
+                    <label htmlFor="phone">Phone number *</label>
                     <input
                         type="phone"
                         id="phone"

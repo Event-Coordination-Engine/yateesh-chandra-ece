@@ -39,7 +39,6 @@
   width: 80%; /* Wider view when expanded */
   max-width: none; /* Remove max-width constraint */
   margin: 0 auto; /* Center the card */
-  z-index: 1000; /* Ensure it stays on top */
 }
 
 .event-title {
