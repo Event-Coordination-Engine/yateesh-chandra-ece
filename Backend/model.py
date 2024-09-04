@@ -36,7 +36,7 @@ class Event(Base) :
     approved_timestamp = Column(DateTime, nullable = True)
     status = Column(String, nullable = False, default = 'pending')
 
-    event_attendee = relationship('Attendee', back_populates='events')
+    event_attendee = relationship('Attendee', back_populates='events', cascade = "all, delete-orphan")
     organizer = relationship('User', back_populates='user_event')
 
 # Create a class Attendee to map it as a relation
@@ -63,7 +63,7 @@ class Attendee_Bkp(Base) :
     attendee_name = Column(String, nullable = False)
     email = Column(String, nullable=False)
     phone = Column(String, nullable=True)
-    event_id = Column(Integer, nullable = False)
+    event_id = Column(Integer,ForeignKey('event.event_id', ondelete='CASCADE'))
     registration_timestamp = Column(DateTime, nullable=True, default=datetime.now())
     reg_status = Column(String, nullable = False)
 
