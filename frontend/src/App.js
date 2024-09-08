@@ -1,6 +1,5 @@
 import './App.css';
 import Index from './components/Index';
-import AdminDashBoard from './dashboard/AdminDashboard';
 import HomePage from './pages/Home';
 import Login from './pages/Login';
 import Registration from './pages/Registration';
