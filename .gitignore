@@ -13,7 +13,7 @@ public
 /coverage
 # production
 /build
-
+Backend/test.py
 # misc
 .DS_Store
 .env.local
