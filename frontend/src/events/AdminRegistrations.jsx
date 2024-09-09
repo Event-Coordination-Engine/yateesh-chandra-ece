@@ -15,7 +15,6 @@ const AdminRegistrations = () => {
     }
   };
 
-  // Use effect to fetch events on component mount and id change
   useEffect(() => {
     fetchEvents();
   }, []);

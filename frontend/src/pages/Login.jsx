@@ -70,7 +70,9 @@ const Login = () => {
             localStorage.setItem("phone", response.data.body.phone);
             localStorage.setItem("log_id", response.data.body.log_id);
             SweetAlert.loginSuccessSwal("Signing you in")
-            navigate("/dashboard");
+            setTimeout( async () => {
+                navigate("/dashboard");
+            }, 1000)
             
 
         } catch (error) {
