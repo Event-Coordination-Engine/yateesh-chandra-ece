@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from auth import get_password_hash, verify_password
 import re
 from sqlalchemy import update
+import utils
 import json
 
 app = FastAPI()
@@ -96,6 +97,7 @@ def register_user(user_obj : UserRegistrationDTO, db : db_dependency):
     
     db.add(user_obj)
     db.commit()
+    utils.email_trigger(user_obj.email, "registration", user_obj.first_name + " " + user_obj.last_name if user_obj.last_name is not None else user_obj.first_name  )
     return {"status_code" : 201 , "message" : "User Successfully Registered"}
 
 @app.post("/user/login", status_code=200)
