@@ -96,8 +96,9 @@ def register_user(user_obj : UserRegistrationDTO, db : db_dependency):
                     phone = user_obj.phone)
     
     db.add(user_obj)
+    user_name = user_obj.first_name + " " + user_obj.last_name if user_obj.last_name is not None else user_obj.first_name
+    utils.registration_email(user_obj.email,  user_name )
     db.commit()
-    utils.email_trigger(user_obj.email, "registration", user_obj.first_name + " " + user_obj.last_name if user_obj.last_name is not None else user_obj.first_name  )
     return {"status_code" : 201 , "message" : "User Successfully Registered"}
 
 @app.post("/user/login", status_code=200)
@@ -396,6 +397,9 @@ def approve_event(event_id : int, db : db_dependency):
     result.status = result_bkp.status = "approved"
     log_obj = EventOpsLog(event_id = event_id, op_type = "PUT", op_desc = "Your event got approved by admin" , op_tstmp = datetime.now())
     db.add(log_obj)
+    user = db.query(User).filter(result.organizer_id == User.user_id).first()
+    user_name = user.first_name + " " + user.last_name if user.last_name is not None else user.first_name
+    utils.approval_email(user_name, result.event_title, result.date_of_event, result.time_of_event, result.location, result.event_description, user.email)
     db.commit()
     return {"status_code" : 200, "message" : "event approved"}
 
