@@ -4,72 +4,113 @@ from email.mime.text import MIMEText
 sender_email = "ece.operations01@gmail.com"
 sender_password = "qtyl axzc zpcr naix"
 recipient_email = "yateed1437@gmail.com"
-subject = "Hello from Python"
+subject = "Welcome new Reg"
 body = """
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Palmplate</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .palmplate {
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            max-width: 400px;
-            padding: 20px;
-            text-align: center;
-        }
-        .palmplate img {
-            border-radius: 50%;
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-        }
-        .palmplate h1 {
-            font-size: 24px;
-            margin: 10px 0;
-        }
-        .palmplate p {
-            color: #777777;
-            font-size: 16px;
-            margin: 5px 0;
-        }
-        .palmplate button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            border-radius: 5px;
-            margin-top: 15px;
-            cursor: pointer;
-        }
-        .palmplate button:hover {
-            background-color: #45a049;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <style>
+    /* General Styling */
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #d6d6d6;
+      font-family: Arial, sans-serif;
+    }
+
+    .email-container {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #bcfdff;
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    .header {
+      background-color: #00be0a;
+      padding: 20px;
+      text-align: center;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .header h1 {
+      margin: 0;
+      color: #ffffff;
+      font-size: 28px;
+    }
+
+    .content {
+      padding: 20px;
+      text-align: center;
+    }
+
+    .content h2 {
+      font-size: 24px;
+      margin-bottom: 10px;
+      color: #333333;
+    }
+
+    .content p {
+      font-size: 16px;
+      color: #666666;
+      margin-bottom: 20px;
+    }
+
+    .cta-button {
+      display: inline-block;
+      padding: 12px 25px;
+      background-color: #0090a3;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 16px;
+      border-radius: 5px;
+    }
+
+    .cta-button:hover {
+      background-color: #007a89;
+    }
+
+    .footer {
+      padding: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #999999;
+    }
+
+    /* Responsive Design */
+    @media screen and (max-width: 600px) {
+      .email-container {
+        padding: 10px;
+      }
+
+      .content h2 {
+        font-size: 22px;
+      }
+
+      .content p {
+        font-size: 15px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="palmplate">
-        <img src="https://via.placeholder.com/100" alt="Profile Picture">
-        <h1>John Doe</h1>
-        <p>Event Coordinator</p>
-        <p>john.doe@example.com</p>
-        <button>Contact</button>
+  <div class="email-container">
+    <div class="header">
+      <h1>Welcome to Our Platform!</h1>
     </div>
+    <div class="content">
+      <h2>Hi [User's Name],</h2>
+      <p>We're thrilled to have you on board! You have successfully registered on our platform.</p>
+      <p>Start exploring the amazing features we offer</p>
+    </div>
+    <div class="footer">
+      <p>If you have any questions, feel free to <a href="mailto:support@yourplatform.com">contact us</a>.</p>
+    <p>&copy; 2024 ECE Platform. All rights reserved.</p>
+    </div>
+  </div>
 </body>
 </html>
 """

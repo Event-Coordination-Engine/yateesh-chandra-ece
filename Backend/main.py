@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from database import Base, SessionLocal, engine
 from dto import UserRegistrationDTO, UserLoginDTO, UserResponseDTO,\
@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from auth import get_password_hash, verify_password
 import re
 from sqlalchemy import update
+import utils
 import json
 
 app = FastAPI()
@@ -52,7 +53,7 @@ db_dependency = Annotated[Session, Depends(get_db)]
 #-#-#-#-#-# USER API #-#-#-#-#-#
 # Create a Registration Function that posts to database
 @app.post("/user/register", status_code=201)
-def register_user(user_obj : UserRegistrationDTO, db : db_dependency):
+def register_user(user_obj : UserRegistrationDTO, db : db_dependency, background_tasks: BackgroundTasks):
 
     # Check if the email exists
     email_check = db.query(User).filter(User.email == user_obj.email).first()
@@ -95,6 +96,8 @@ def register_user(user_obj : UserRegistrationDTO, db : db_dependency):
                     phone = user_obj.phone)
     
     db.add(user_obj)
+    user_name = user_obj.first_name + " " + user_obj.last_name if user_obj.last_name is not None else user_obj.first_name
+    background_tasks.add_task(utils.registration_email, user_obj.email, user_name)
     db.commit()
     return {"status_code" : 201 , "message" : "User Successfully Registered"}
 
@@ -383,7 +386,7 @@ def get_pending_event_by_user_id(user_id : int, db : db_dependency):
     return {"status_code" : 200, "body" : result}
 
 @app.put("/approve-event/{event_id}")
-def approve_event(event_id : int, db : db_dependency):
+def approve_event(event_id : int, db : db_dependency, background_tasks : BackgroundTasks):
     result = db.query(Event).filter(Event.event_id == event_id).first()
     result_bkp = db.query(EventBackUp).filter(EventBackUp.event_id == event_id).first()
     if result is None :
@@ -394,6 +397,9 @@ def approve_event(event_id : int, db : db_dependency):
     result.status = result_bkp.status = "approved"
     log_obj = EventOpsLog(event_id = event_id, op_type = "PUT", op_desc = "Your event got approved by admin" , op_tstmp = datetime.now())
     db.add(log_obj)
+    user = db.query(User).filter(result.organizer_id == User.user_id).first()
+    user_name = user.first_name + " " + user.last_name if user.last_name is not None else user.first_name
+    background_tasks.add_task(utils.approval_email, user_name, result.event_title, result.date_of_event, result.time_of_event, result.location, result.event_description, user.email)
     db.commit()
     return {"status_code" : 200, "message" : "event approved"}
 
