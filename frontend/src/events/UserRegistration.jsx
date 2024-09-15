@@ -83,7 +83,6 @@ const UserRegistration = () => {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                required
             />
             </div>
             <div className="event-actions">

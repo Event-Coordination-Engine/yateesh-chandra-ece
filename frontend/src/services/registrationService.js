@@ -24,6 +24,10 @@ class RegistrationServices{
         return axios.get(ATTENDEE_URL + "/all_registered_events")
     }
 
+    getInactiveEvents() {
+        return axios.get(ATTENDEE_URL + "/all_inactive_events")
+    }
+
 }
 
 export default new RegistrationServices();

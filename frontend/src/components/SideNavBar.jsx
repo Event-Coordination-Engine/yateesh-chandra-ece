@@ -5,6 +5,7 @@ import { FaPowerOff } from "react-icons/fa";
 const SideNavBar = ({ isNavOpen, handleSignout, closeNav }) => {
     const location = useLocation();
     const fromPage = location.state?.from;
+    const userRole = localStorage.getItem("role");
 
     const handleLinkClick = () => {
         closeNav(); // Close the navigation bar
@@ -38,6 +39,13 @@ const SideNavBar = ({ isNavOpen, handleSignout, closeNav }) => {
                         <span>Registered Events</span>
                     </li>
                 </Link>
+                {userRole === "ADMIN" && (
+                <Link to="/dashboard/all-attendees" onClick={handleLinkClick}>
+                    <li className={location.pathname === "/dashboard/all-attendees" ? "active" : ""}>
+                        <span>Old Registrations</span>
+                    </li>
+                </Link>
+                )}
             </ul>
             <div className="sign-out">
                 <button onClick={handleSignout}><FaPowerOff /> Sign Out</button>
