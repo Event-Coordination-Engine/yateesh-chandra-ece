@@ -10,9 +10,10 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from auth import get_password_hash, verify_password
 import re
-from sqlalchemy import update
+from sqlalchemy import update, func
 import utils
 import json
+from threading import Thread
 
 app = FastAPI()
 
@@ -49,6 +50,52 @@ def get_db() :
 
 # Set up Database Dependency
 db_dependency = Annotated[Session, Depends(get_db)]
+
+def cleanUpOlderData():
+    db: Session = next(get_db())
+    curr_date = datetime.now().strftime("%d-%m-%Y")
+    print(curr_date)
+    inactive_events = db.query(Event).filter(func.to_date(Event.date_of_event, 'DD-MM-YYYY') <= curr_date).all()
+    if len(inactive_events) == 0 :
+        print("No earlier events to be Cleaned")
+    else :
+        print(f"Cleaning up {len(inactive_events)} events : ")
+        cnt = 1
+        for event in inactive_events:
+            print(f"{cnt}. {event.event_title} - {event.date_of_event}")
+            
+            # Updating the Status in Event Backup table to inactive and latest op to Delete
+            db.query(EventBackUp).filter(EventBackUp.event_id == event.event_id).update(
+                {EventBackUp.flag: "inactive",EventBackUp.latest_op: "DELETE", EventBackUp.op_tstmp:datetime.now()},
+                synchronize_session=False
+            )
+            
+            # Updating the reg_status in Attendees Backup Table to inactive for all the events who are cleaned up
+            db.query(Attendee_Bkp).filter(Attendee_Bkp.event_id == event.event_id).update(
+                {Attendee_Bkp.reg_status: "inactive"},
+                synchronize_session=False
+            )
+
+            # Adding the Delete Log to the Event Operations
+            log_obj = EventOpsLog(event_id = event.event_id
+                                  , op_type = "DELETE"
+                                  , op_desc = "This Event is expired and hence cleaned up" 
+                                  , op_tstmp = datetime.now())
+            db.add(log_obj)
+            db.delete(event)
+            db.commit()
+            cnt += 1
+        print(f"Clean-Up Completed")
+    
+def start_background_task():
+    task_thread = Thread(target=cleanUpOlderData)
+    # Allows thread to exit when the main program exits
+    task_thread.daemon = True  
+    task_thread.start()
+
+@app.on_event("startup")
+async def startup_event():
+    start_background_task()
 
 #-#-#-#-#-# USER API #-#-#-#-#-#
 # Create a Registration Function that posts to database
