@@ -103,9 +103,9 @@ async def startup_event():
 def register_user(user_obj : UserRegistrationDTO, db : db_dependency, background_tasks: BackgroundTasks):
 
     # Check if the email exists
-    email_check = db.query(User).filter(User.email == user_obj.email).first()
+    email_check = db.query(User).filter(func.lower(User.email) == user_obj.email.strip().lower()).first()
     
-    if email_check:
+    if email_check : 
         raise HTTPException(status_code=400, detail= "User with same Email already exists")
 
     # Validate User Registration Entries
