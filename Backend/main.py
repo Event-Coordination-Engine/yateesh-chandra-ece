@@ -452,6 +452,25 @@ def approve_event(event_id : int, db : db_dependency, background_tasks : Backgro
     db.commit()
     return {"status_code" : 200, "message" : "event approved"}
 
+@app.put("/approve-all-events")
+def approve_all_event(db : db_dependency, background_tasks : BackgroundTasks):
+    result = db.query(Event).filter(Event.status == "pending").all()
+    result_bkp = db.query(EventBackUp).filter(EventBackUp.status == "pending").all()
+    for i in result :
+        i.approved_timestamp = datetime.now()
+        i.status = "approved"
+        user = db.query(User).filter(i.organizer_id == User.user_id).first()
+        user_name = user.first_name + " " + user.last_name if user.last_name is not None else user.first_name
+        background_tasks.add_task(utils.approval_email, user_name, i.event_title, i.date_of_event, i.time_of_event, i.location, i.event_description, user.email)
+        db.commit()
+    for i in result_bkp :
+        i.approved_timestamp = datetime.now()
+        i.status = "approved"
+        log_obj = EventOpsLog(event_id = i.event_id, op_type = "PUT", op_desc = "Your event got approved by admin" , op_tstmp = datetime.now())
+        db.add(log_obj)
+        db.commit()
+    return {"status_code" : 200, "message" : "events approved"}
+
 @app.post("/register_event", status_code=201)
 def register_for_event(reg_dto: RegisterForEvent, db: db_dependency):
     user_check = db.query(User).filter(User.user_id == reg_dto.user_id).first()
