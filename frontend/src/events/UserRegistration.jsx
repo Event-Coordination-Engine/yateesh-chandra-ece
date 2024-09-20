@@ -38,12 +38,20 @@ const UserRegistration = () => {
                 showConfirmButton: false,
             }).then(navigateBack);
         } catch (err) {
+            if (err.response.data.detail == "Cannot register since max Capacity reached"){
+                Swal.fire({
+                    title: "Maximum registrations Reached",
+                    text: "But We are working on the routes to get you into our event",
+                    icon: "warning",
+                });
+            }
+            else{
             Swal.fire({
                 title: "Unable to register for event",
                 text: err.response.data.detail,
                 icon: "error",
             });
-            console.log(err);
+            console.log(err);}
         }
         
         console.log("Registration Form submitted:", formData);
@@ -83,7 +91,6 @@ const UserRegistration = () => {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                required
             />
             </div>
             <div className="event-actions">

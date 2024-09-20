@@ -10,9 +10,10 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from auth import get_password_hash, verify_password
 import re
-from sqlalchemy import update
+from sqlalchemy import update, func
 import utils
 import json
+from threading import Thread
 
 app = FastAPI()
 
@@ -49,6 +50,52 @@ def get_db() :
 
 # Set up Database Dependency
 db_dependency = Annotated[Session, Depends(get_db)]
+
+def cleanUpOlderData():
+    db: Session = next(get_db())
+    curr_date = datetime.now().strftime("%d-%m-%Y")
+    print(curr_date)
+    inactive_events = db.query(Event).filter(func.to_date(Event.date_of_event, 'DD-MM-YYYY') < curr_date).all()
+    if len(inactive_events) == 0 :
+        print("No earlier events to be Cleaned")
+    else :
+        print(f"Cleaning up {len(inactive_events)} events : ")
+        cnt = 1
+        for event in inactive_events:
+            print(f"{cnt}. {event.event_title} - {event.date_of_event}")
+            
+            # Updating the Status in Event Backup table to inactive and latest op to Delete
+            db.query(EventBackUp).filter(EventBackUp.event_id == event.event_id).update(
+                {EventBackUp.flag: "inactive",EventBackUp.latest_op: "DELETE", EventBackUp.op_tstmp:datetime.now()},
+                synchronize_session=False
+            )
+            
+            # Updating the reg_status in Attendees Backup Table to inactive for all the events who are cleaned up
+            db.query(Attendee_Bkp).filter(Attendee_Bkp.event_id == event.event_id).update(
+                {Attendee_Bkp.reg_status: "inactive"},
+                synchronize_session=False
+            )
+
+            # Adding the Delete Log to the Event Operations
+            log_obj = EventOpsLog(event_id = event.event_id
+                                  , op_type = "DELETE"
+                                  , op_desc = "This Event is expired and hence cleaned up" 
+                                  , op_tstmp = datetime.now())
+            db.add(log_obj)
+            db.delete(event)
+            db.commit()
+            cnt += 1
+        print(f"Clean-Up Completed")
+    
+def start_background_task():
+    task_thread = Thread(target=cleanUpOlderData)
+    # Allows thread to exit when the main program exits
+    task_thread.daemon = True  
+    task_thread.start()
+
+@app.on_event("startup")
+async def startup_event():
+    start_background_task()
 
 #-#-#-#-#-# USER API #-#-#-#-#-#
 # Create a Registration Function that posts to database
@@ -337,12 +384,14 @@ def get_pending_events(db : db_dependency) :
 
 @app.get("/approved-events")
 def get_approved_events(db : db_dependency) :
-    result = db.query(Event).filter(Event.status == "approved").all()
+    date_to_show = (datetime.now() + timedelta(days=2)).strftime("%d-%m-%Y")
+    result = db.query(Event).filter(Event.status == "approved",  Event.date_of_event >= date_to_show).all()
     return{"status_code" : 200, "body" : result}
 
 @app.get("/available-events/{user_id}")
 def get_available_events(user_id : int, db : db_dependency) :
-    result = db.query(Event).filter(Event.status == "approved", Event.organizer_id != user_id).all()
+    date_to_show = (datetime.now() + timedelta(days=2)).strftime("%d-%m-%Y")
+    result = db.query(Event).filter(Event.status == "approved", Event.organizer_id != user_id, Event.date_of_event >= date_to_show).all()
     return{"status_code" : 200, "body" : result}
 
 @app.delete("/delete-event/{event_id}")
@@ -522,6 +571,34 @@ def get_all_registered_events(db: db_dependency):
         return_dto.append(dto)
 
     return {"status": 200, "message": "All Events fetched successfully", "body": return_dto}
+
+@app.get("/all_inactive_events")
+def get_inactive_events(db : db_dependency):
+    result = db.query(Attendee_Bkp).filter(Attendee_Bkp.reg_status == 'inactive').all()
+    print(len(result))
+
+    return_dto: List[GetAllRegistrationsDTO] = []
+
+    for attendee in result:
+        
+        event = db.query(EventBackUp).filter(EventBackUp.event_id == attendee.event_id).first()
+        user = db.query(User).filter(User.user_id == attendee.user_id).first()
+
+        user_name = user.first_name
+        if user.last_name:
+            user_name = user_name + ' ' + user.last_name
+
+        dto = GetAllRegistrationsDTO(
+            attendee_name=attendee.attendee_name,
+            email=attendee.email,
+            phone=attendee.phone,
+            registration_date=datetime.strftime(attendee.registration_timestamp.date(), '%d-%m-%Y'),
+            registered_by=user_name,
+            event_name=event.event_title if event else None
+        )
+        return_dto.append(dto)
+
+    return {"status": 200, "message": "All Inactive Events fetched successfully", "body": return_dto}
 
 @app.on_event("shutdown")
 def shutdown_event():
