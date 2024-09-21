@@ -219,7 +219,7 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
     if e_title is not None :
         raise HTTPException(status_code=409, detail = "Event Name already Exists..!")
 
-    if create_event_obj.location != "online":
+    if create_event_obj.location.lower() != "online":
 
         event_datetime = datetime.strptime(f"{create_event_obj.date_of_event} {create_event_obj.time_of_event}", '%d-%m-%Y %H:%M')
         
