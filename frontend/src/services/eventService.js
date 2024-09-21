@@ -20,6 +20,10 @@ class EventServices{
         return axios.put(EVENT_URL + "/approve-event/" + id);
     }
 
+    approve_all(){
+        return axios.put(EVENT_URL + "/approve-all-events");
+    }
+
     createEvent(body){
         return axios.post(EVENT_URL + "/create-event", body);
     }

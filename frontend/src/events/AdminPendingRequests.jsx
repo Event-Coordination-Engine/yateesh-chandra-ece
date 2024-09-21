@@ -1,42 +1,87 @@
 import React, { useState, useEffect } from "react";
 import eventService from "../services/eventService";
 import AdminEventCard from "./AdminEventCard";
+import Swal from "sweetalert2";
 
 const AdminPendingRequests = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState(""); // Add state for search term
 
-    const fetchPendingEvents = async () => {
-      setLoading(true);
-      try {
-        setTimeout(async () => {
-          const response = await eventService.getPendingEvents();
-          setEvents(response?.data?.body || []);
-          setLoading(false);
-        }, 1000);
-      } catch (error) {
-        console.log(error);
+  const fetchPendingEvents = async () => {
+    setLoading(true);
+    try {
+      setTimeout(async () => {
+        const response = await eventService.getPendingEvents();
+        setEvents(response?.data?.body || []);
         setLoading(false);
-      }
-    };
+      }, 1000);
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
+  };
 
-    useEffect(() => {
-      fetchPendingEvents();
-    }, []);
+  const approveAll = () => {
+    Swal.fire({
+      title: "Approve All Events?",
+      text: "This will approve all pending events.",
+      icon: "warning",
+      confirmButtonText: "Approve All",
+      showCancelButton: true,
+      cancelButtonText: "Cancel",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        await eventService.approve_all();
+        Swal.fire({
+          title: "Approved!",
+          text: "All events have been approved.",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        fetchPendingEvents();
+      }
+    });
+  };
+
+  useEffect(() => {
+    fetchPendingEvents();
+  }, []);
+
+  // Filter the events based on the search term
+  const filteredEvents = events.filter((event) =>
+    event.event_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    event.location.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div>
       <h1 className="events-heading">Pending Requests</h1>
+      <div className="admin-header">
+        <button className="approve-all-btn" onClick={approveAll}>Approve All</button>
+        <input
+          className="search-input"
+          type="text"
+          placeholder="Search events..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)} // Update search term on input change
+        />
+      </div>
       <div className="events-container">
         {loading ? (
-          <p className="loading-text"><i class="fa fa-refresh fa-spin fa-1x fa-fw"></i>
-           Loading</p> 
-        ) : events.length === 0 ? (
-          <p className="no-items-text"><i class="fas fa-smile-beam"> </i>    Nothing to Approve</p> 
+          <p className="loading-text">
+            <i className="fa fa-refresh fa-spin fa-1x fa-fw"></i> Loading
+          </p>
+        ) : filteredEvents.length === 0 ? ( // Show filtered events instead of all events
+          <p className="no-items-text">
+            <i className="fas fa-smile-beam"></i> No matching events
+          </p>
         ) : (
-        events.map((event, index) => (
-          <AdminEventCard key={index} event={event} refreshEvents={fetchPendingEvents}/>
-        )))}
+          filteredEvents.map((event, index) => (
+            <AdminEventCard key={index} event={event} refreshEvents={fetchPendingEvents} />
+          ))
+        )}
       </div>
     </div>
   );

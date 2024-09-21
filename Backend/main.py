@@ -385,13 +385,15 @@ def get_pending_events(db : db_dependency) :
 @app.get("/approved-events")
 def get_approved_events(db : db_dependency) :
     date_to_show = (datetime.now() + timedelta(days=2)).strftime("%d-%m-%Y")
-    result = db.query(Event).filter(Event.status == "approved",  Event.date_of_event >= date_to_show).all()
+    result = db.query(Event).filter(Event.status == "approved",  
+                                    func.to_date(Event.date_of_event, 'DD-MM-YYYY') >= date_to_show
+                                    ).all()
     return{"status_code" : 200, "body" : result}
 
 @app.get("/available-events/{user_id}")
 def get_available_events(user_id : int, db : db_dependency) :
     date_to_show = (datetime.now() + timedelta(days=2)).strftime("%d-%m-%Y")
-    result = db.query(Event).filter(Event.status == "approved", Event.organizer_id != user_id, Event.date_of_event >= date_to_show).all()
+    result = db.query(Event).filter(Event.status == "approved", Event.organizer_id != user_id, func.to_date(Event.date_of_event, 'DD-MM-YYYY') >= date_to_show).all()
     return{"status_code" : 200, "body" : result}
 
 @app.delete("/delete-event/{event_id}")
