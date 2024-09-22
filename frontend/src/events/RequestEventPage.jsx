@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import "./RequestEventPage.css";
 import eventService from "../services/eventService";
 import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
 
 const RequestEventPage = () => {
     const id = localStorage.getItem("id");
+    const nav = useNavigate();
     const [formData, setFormData] = useState({
         event_title: "",
         date_of_event: "",
@@ -23,6 +25,10 @@ const RequestEventPage = () => {
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
+
+    const redirect = () => {
+        nav(`/dashboard/my-events`, { state: { from: "my-events" } });
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -45,6 +51,7 @@ const RequestEventPage = () => {
                 timer: 1500,
                 showConfirmButton: false,
             });
+            redirect()
         } catch (err) {
             Swal.fire({
                 title: "Unable to add event",
@@ -127,7 +134,10 @@ const RequestEventPage = () => {
                 required
             ></textarea>
             </div>
-            <button type="submit" className="submit-btn">Submit Request</button>
+            <div className="button-group">
+                <button type="submit" className="submit-button">Submit Request</button>
+                <button type="button" className="home-button" onClick={redirect}>Cancel</button>
+            </div>
         </form>
         </div>
     );

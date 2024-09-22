@@ -76,6 +76,7 @@ function Index() {
                                 {userRole === "ADMIN" && (<Route path="all-attendees" element={<AdminOldRegistrations />} />)}
                                 <Route path="available-events" element={<EventRegistration/>}/>
                                 <Route path="register-event/:eventId" element={<UserRegistration />} />
+                                <Route path="add-event" element={<RequestEventPage />} />
                                 <Route path="edit-event/:eventId" element={<EditEventPage />} />
                             </Routes>
                         </div>

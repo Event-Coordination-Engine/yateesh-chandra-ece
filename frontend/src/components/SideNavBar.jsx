@@ -39,6 +39,7 @@ const SideNavBar = ({ isNavOpen, handleSignout, closeNav }) => {
                         <span>Registered Events</span>
                     </li>
                 </Link>
+
                 {userRole === "ADMIN" && (
                 <Link to="/dashboard/all-attendees" onClick={handleLinkClick}>
                     <li className={location.pathname === "/dashboard/all-attendees" ? "active" : ""}>

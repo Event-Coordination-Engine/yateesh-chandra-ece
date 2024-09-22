@@ -103,9 +103,9 @@ async def startup_event():
 def register_user(user_obj : UserRegistrationDTO, db : db_dependency, background_tasks: BackgroundTasks):
 
     # Check if the email exists
-    email_check = db.query(User).filter(User.email == user_obj.email).first()
+    email_check = db.query(User).filter(func.lower(User.email) == user_obj.email.strip().lower()).first()
     
-    if email_check:
+    if email_check : 
         raise HTTPException(status_code=400, detail= "User with same Email already exists")
 
     # Validate User Registration Entries
@@ -219,7 +219,7 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
     if e_title is not None :
         raise HTTPException(status_code=409, detail = "Event Name already Exists..!")
 
-    if create_event_obj.location != "online":
+    if create_event_obj.location.lower() != "online":
 
         event_datetime = datetime.strptime(f"{create_event_obj.date_of_event} {create_event_obj.time_of_event}", '%d-%m-%Y %H:%M')
         
@@ -385,13 +385,15 @@ def get_pending_events(db : db_dependency) :
 @app.get("/approved-events")
 def get_approved_events(db : db_dependency) :
     date_to_show = (datetime.now() + timedelta(days=2)).strftime("%d-%m-%Y")
-    result = db.query(Event).filter(Event.status == "approved",  Event.date_of_event >= date_to_show).all()
+    result = db.query(Event).filter(Event.status == "approved",  
+                                    func.to_date(Event.date_of_event, 'DD-MM-YYYY') >= date_to_show
+                                    ).all()
     return{"status_code" : 200, "body" : result}
 
 @app.get("/available-events/{user_id}")
 def get_available_events(user_id : int, db : db_dependency) :
     date_to_show = (datetime.now() + timedelta(days=2)).strftime("%d-%m-%Y")
-    result = db.query(Event).filter(Event.status == "approved", Event.organizer_id != user_id, Event.date_of_event >= date_to_show).all()
+    result = db.query(Event).filter(Event.status == "approved", Event.organizer_id != user_id, func.to_date(Event.date_of_event, 'DD-MM-YYYY') >= date_to_show).all()
     return{"status_code" : 200, "body" : result}
 
 @app.delete("/delete-event/{event_id}")
@@ -451,6 +453,25 @@ def approve_event(event_id : int, db : db_dependency, background_tasks : Backgro
     background_tasks.add_task(utils.approval_email, user_name, result.event_title, result.date_of_event, result.time_of_event, result.location, result.event_description, user.email)
     db.commit()
     return {"status_code" : 200, "message" : "event approved"}
+
+@app.put("/approve-all-events")
+def approve_all_event(db : db_dependency, background_tasks : BackgroundTasks):
+    result = db.query(Event).filter(Event.status == "pending").all()
+    result_bkp = db.query(EventBackUp).filter(EventBackUp.status == "pending").all()
+    for i in result :
+        i.approved_timestamp = datetime.now()
+        i.status = "approved"
+        user = db.query(User).filter(i.organizer_id == User.user_id).first()
+        user_name = user.first_name + " " + user.last_name if user.last_name is not None else user.first_name
+        background_tasks.add_task(utils.approval_email, user_name, i.event_title, i.date_of_event, i.time_of_event, i.location, i.event_description, user.email)
+        db.commit()
+    for i in result_bkp :
+        i.approved_timestamp = datetime.now()
+        i.status = "approved"
+        log_obj = EventOpsLog(event_id = i.event_id, op_type = "PUT", op_desc = "Your event got approved by admin" , op_tstmp = datetime.now())
+        db.add(log_obj)
+        db.commit()
+    return {"status_code" : 200, "message" : "events approved"}
 
 @app.post("/register_event", status_code=201)
 def register_for_event(reg_dto: RegisterForEvent, db: db_dependency):
