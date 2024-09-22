@@ -15,6 +15,7 @@ import UserRegistration from "../events/UserRegistration";
 import AdminRegistrations from "../events/AdminRegistrations";
 import userService from "../services/userService";
 import AdminOldRegistrations from "../events/AdminOldRegistrations";
+import Dashboard from "../pages/Dashboard";
 
 function Index() {
     const [isNavOpen, setIsNavOpen] = useState(false);
@@ -67,7 +68,7 @@ function Index() {
                         </header>
                         <div className="content">
                             <Routes>
-                                <Route path="/" element={<RequestEventPage />} />
+                                <Route path="/" element={<Dashboard />} />
                                 <Route path="my-events" element={<MyEvents />} />
                                 {userRole === "USER" && (<Route path="pending-requests" element={<PendingRequests />} />)}
                                 {userRole === "ADMIN" && (<Route path="pending-requests" element={<AdminPendingRequests />} />)}
