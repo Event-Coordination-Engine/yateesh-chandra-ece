@@ -33,6 +33,28 @@
     flex-wrap: wrap;
 }
 
+.info-icon {
+    display: inline-block;
+    position: relative;
+    margin-left: 10px; /* Space between button and icon */
+    cursor: pointer;
+}
+
+.tooltip {
+    position: absolute;
+    top: 100%; /* Position below the icon */
+    left: 50%;
+    background-color: #333;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    white-space: nowrap; /* Prevent line breaks */
+    z-index: 100; 
+    margin-top: 5px; /* Space above tooltip */
+    opacity: 0.9;
+    transition: opacity 0.3s;
+}
+
 .action-button {
     background-color: #ffbb00;
     color: white;

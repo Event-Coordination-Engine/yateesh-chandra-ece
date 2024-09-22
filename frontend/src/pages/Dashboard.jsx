@@ -8,7 +8,7 @@ const Dashboard = () => {
     return (
         <div className="home-page">
             <header className="home-header">
-                <h1>Welcome to the Event Management System</h1>
+                <h1>Welcome to the Event Coordination Engine</h1>
                 <p>Your platform for managing events efficiently.</p>
             </header>
 
