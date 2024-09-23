@@ -14,8 +14,12 @@ from sqlalchemy import update, func
 import utils
 import json
 from threading import Thread
+import logging
+import uvicorn
 
 app = FastAPI()
+logging.basicConfig(level=logging.DEBUG, filename='app.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 # Create the tables provided in metadata
 Base.metadata.create_all(bind = engine)
@@ -642,3 +646,6 @@ app.add_middleware(
     allow_methods = ["*"],
     allow_headers = ["*"],
 )
+
+if __name__ == "__main__":
+    uvicorn.run(app,port=8083)

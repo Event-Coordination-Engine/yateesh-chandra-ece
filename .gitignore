@@ -28,3 +28,5 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 test-frontend
+Backend/app.log
+Backend/log_check.py
