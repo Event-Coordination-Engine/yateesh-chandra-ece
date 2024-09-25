@@ -5,6 +5,7 @@ from datetime import datetime
 
 # Create a class User to map it as a relation in Database
 class User(Base):
+    
     __tablename__ = "user"
 
     user_id = Column(Integer, primary_key = True)
@@ -99,6 +100,7 @@ class EventBackUp(Base) :
     flag = Column(String, nullable = False, default="active")
 
 class EventOpsLog(Base):
+
     __tablename__ = "event_ops_log"
 
     op_gid = Column(Integer, primary_key = True)
@@ -106,3 +108,14 @@ class EventOpsLog(Base):
     op_type = Column(String, nullable=False)
     op_desc = Column(String, nullable=False)
     op_tstmp = Column(DateTime, nullable = False, default=datetime.now())
+
+class Api_Audit(Base) :
+    
+    __tablename__ = "api_audit"
+
+    api_log_id = Column(Integer, primary_key = True)
+    api_method = Column(String, nullable = False)
+    api_endpoint = Column(String, nullable = False)
+    status_code = Column(String, nullable = False)
+    response_message = Column(String, nullable = False)
+    operation_timestamp = Column(DateTime, nullable = False, default = datetime.now())

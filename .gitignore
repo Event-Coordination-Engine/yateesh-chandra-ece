@@ -30,3 +30,4 @@ yarn-error.log*
 test-frontend
 Backend/app.log
 Backend/log_check.py
+Backend/test1.py

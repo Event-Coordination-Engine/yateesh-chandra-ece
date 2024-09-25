@@ -1,3 +1,19 @@
+from fastapi import Request
+from datetime import datetime
+from http import HTTPStatus
+from model import Api_Audit
+
+def log_api(db, request: Request, response_code: int, message: str):
+    status_message = HTTPStatus(response_code).phrase  # Get the standard message for the status code
+    api_obj = Api_Audit(api_method = request.method, 
+                    api_endpoint = request.url.path,
+                    status_code = str(response_code) + " " + status_message,
+                    response_message = message,
+                    operation_timestamp = datetime.now())
+    db.add(api_obj)
+    db.commit()
+    return {"message" : "log added"}
+
 def email_trigger(subject, body, user_email):
     import smtplib
     from email.mime.text import MIMEText

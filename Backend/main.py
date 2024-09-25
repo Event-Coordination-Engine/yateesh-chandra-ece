@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks
+from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from database import Base, SessionLocal, engine
 from dto import UserRegistrationDTO, UserLoginDTO, UserResponseDTO,\
@@ -16,6 +16,7 @@ import json
 from threading import Thread
 import logging
 import uvicorn
+from utils import log_api
 
 app = FastAPI()
 logging.basicConfig(level=logging.DEBUG, filename='app.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s')
@@ -153,7 +154,7 @@ def register_user(user_obj : UserRegistrationDTO, db : db_dependency, background
     return {"status_code" : 201 , "message" : "User Successfully Registered"}
 
 @app.post("/user/login", status_code=200)
-def login_user(user_login_obj : UserLoginDTO, db : db_dependency):
+def login_user(user_login_obj : UserLoginDTO, db : db_dependency, request : Request):
     db_user = db.query(User).filter(User.email == user_login_obj.email).first()
 
     if not db_user:
@@ -182,6 +183,7 @@ def login_user(user_login_obj : UserLoginDTO, db : db_dependency):
         log_id=login_obj.log_id,
         privilege=db_user.privilege
     )
+    log_api(db, request, status.HTTP_200_OK, "Successfully Logged in..!")
 
     return {"status_code": 200, "message": "Successfully Logged in..!", "body": user_passon_dto}
 
