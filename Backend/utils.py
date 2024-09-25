@@ -1,4 +1,4 @@
-from fastapi import Request
+from fastapi import Request, HTTPException
 from datetime import datetime
 from http import HTTPStatus
 from model import Api_Audit
@@ -13,6 +13,14 @@ def log_api(db, request: Request, response_code: int, message: str):
     db.add(api_obj)
     db.commit()
     return {"message" : "log added"}
+
+def raise_validation_error(db, request, message: str):
+    log_api(db, request, 400, message)
+    raise HTTPException(status_code=400, detail=message)
+
+def unauthorised_access(db, request, message: str):
+    log_api(db, request, 401, message)
+    raise HTTPException(status_code=401, detail=message)
 
 def email_trigger(subject, body, user_email):
     import smtplib

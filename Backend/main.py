@@ -16,7 +16,7 @@ import json
 from threading import Thread
 import logging
 import uvicorn
-from utils import log_api
+from utils import log_api, raise_validation_error, unauthorised_access
 
 app = FastAPI()
 logging.basicConfig(level=logging.DEBUG, filename='app.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s')
@@ -105,62 +105,62 @@ async def startup_event():
 #-#-#-#-#-# USER API #-#-#-#-#-#
 # Create a Registration Function that posts to database
 @app.post("/user/register", status_code=201)
-def register_user(user_obj : UserRegistrationDTO, db : db_dependency, background_tasks: BackgroundTasks):
+def register_user(user_obj : UserRegistrationDTO, request : Request, db : db_dependency, background_tasks: BackgroundTasks):
 
-    # Check if the email exists
-    email_check = db.query(User).filter(func.lower(User.email) == user_obj.email.strip().lower()).first()
-    
-    if email_check : 
-        raise HTTPException(status_code=400, detail= "User with same Email already exists")
+    # Check if the email already exists
+    if db.query(User).filter(func.lower(User.email) == user_obj.email.strip().lower()).first():
+        raise_validation_error(db=db, request=request, message = "User with the same email already exists")
 
-    # Validate User Registration Entries
-    if not user_obj.email :
-        raise HTTPException(status_code=400, detail= "Email can not be empty")
-    if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",user_obj.email) : 
-        raise HTTPException(status_code=400, detail= "Invalid Email Format")
+    # Validate email
+    if not user_obj.email or not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", user_obj.email):
+        raise_validation_error(db=db, request=request, message = "Invalid or missing email")
 
-    if not user_obj.phone :
-        raise HTTPException(status_code=400, detail= "Please Enter Phone number")
-    if len(user_obj.phone) < 10 :
-        raise HTTPException(status_code=400, detail= "Invalid Phone number")
+    # Validate phone number
+    if not user_obj.phone or len(user_obj.phone) < 10:
+        raise_validation_error(db=db, request=request, message = "Invalid or missing phone number")
 
-    if not user_obj.first_name.strip() :
-        raise HTTPException(status_code=400, detail= "First Name is mandatory")
-    
-    # Validate the password
-    if not user_obj.password or len(user_obj.password.strip()) == 0:
-        raise HTTPException(status_code=400, detail = "Please Provide Password")
+    # Validate first name
+    if not user_obj.first_name.strip():
+        raise_validation_error(db=db, request=request, message = "First Name is mandatory")
+
+    # Validate password
+    if not user_obj.password or len(user_obj.password.strip()) < 7:
+        raise_validation_error(db=db, request=request, message = "Password must be at least 7 characters")
     if not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@#$%^&+=]+$", user_obj.password):
-        raise HTTPException(status_code=400, 
-                            detail = "Weak Password detected. Use combination of Uppercase, lowercase and numbers")
-    if len(user_obj.password) < 7 :
-        raise HTTPException(status_code=400, detail = "Password should be atleast 7 characters")
-    
-    # Encrpt the password
+        raise_validation_error(db=db, request=request, message = "Weak password: Use a combination of uppercase, lowercase, and numbers")
+
+    # Encrypt the password
     encrypted_pwd = get_password_hash(user_obj.password)
 
-    # Define a user DTO object you want to pass
-    user_obj = User(first_name = user_obj.first_name.strip(), 
-                    last_name = user_obj.last_name, 
-                    email = user_obj.email,
-                    password = encrypted_pwd,
-                    registered_date = datetime.now(),
-                    phone = user_obj.phone)
+    # Create new user object
+    new_user = User(
+        first_name=user_obj.first_name.strip(),
+        last_name=user_obj.last_name.strip() if user_obj.last_name else None,
+        email=user_obj.email.strip(),
+        password=encrypted_pwd,
+        registered_date=datetime.now(),
+        phone=user_obj.phone.strip()
+    )
     
-    db.add(user_obj)
-    user_name = user_obj.first_name + " " + user_obj.last_name if user_obj.last_name is not None else user_obj.first_name
-    background_tasks.add_task(utils.registration_email, user_obj.email, user_name)
+    log_api(db, request, status.HTTP_201_CREATED, "User Successfully Registered")
+    # Add user to the database
+    db.add(new_user)
     db.commit()
-    return {"status_code" : 201 , "message" : "User Successfully Registered"}
+
+    # Send a registration email in the background
+    user_name = f"{new_user.first_name} {new_user.last_name}".strip()
+    background_tasks.add_task(utils.registration_email, new_user.email, user_name)
+
+    return {"status_code": 201, "message": "User Successfully Registered"}
 
 @app.post("/user/login", status_code=200)
 def login_user(user_login_obj : UserLoginDTO, db : db_dependency, request : Request):
     db_user = db.query(User).filter(User.email == user_login_obj.email).first()
 
     if not db_user:
-        raise HTTPException(status_code=401, detail="Unregistered Email")
+        unauthorised_access(db=db, request=request, message = "Unregistered Email")
     if not verify_password(user_login_obj.password, db_user.password):
-        raise HTTPException(status_code=401, detail="Invalid Credentials")
+        unauthorised_access(db=db, request=request, message = "Invalid Credentials")
     if db_user.last_name is None:
         db_user.last_name = ""
 
@@ -188,11 +188,12 @@ def login_user(user_login_obj : UserLoginDTO, db : db_dependency, request : Requ
     return {"status_code": 200, "message": "Successfully Logged in..!", "body": user_passon_dto}
 
 @app.put("/user/logout/{log_id}")
-def logout_user(log_id : int, db:db_dependency):
+def logout_user(log_id : int, request : Request, db:db_dependency):
     user_obj = db.query(UserLog).filter(UserLog.log_id == log_id).first()
     if user_obj is None : 
-        raise HTTPException(status_code=401, detail="No Active Session found")
+        unauthorised_access(db=db, request=request, message = "No Active Session found")
     user_obj.logout_tstmp = datetime.now()
+    log_api(db, request, status.HTTP_200_OK, "Successfully Logged Out")
     db.commit()
     return {"status_code" : 200, "message" : "Suceessfully Logged out"}
 
