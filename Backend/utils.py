@@ -3,24 +3,38 @@ from datetime import datetime
 from http import HTTPStatus
 from model import Api_Audit
 
-def log_api(db, request: Request, response_code: int, message: str):
+def log_api(db, request: Request, response_code: int, message: str, log = None):
     status_message = HTTPStatus(response_code).phrase  # Get the standard message for the status code
     api_obj = Api_Audit(api_method = request.method, 
                     api_endpoint = request.url.path,
                     status_code = str(response_code) + " " + status_message,
                     response_message = message,
                     operation_timestamp = datetime.now())
+    if log is not None :
+        log.info(message)
     db.add(api_obj)
     db.commit()
     return {"message" : "log added"}
 
-def raise_validation_error(db, request, message: str):
+def raise_validation_error(db, request, message: str, log):
     log_api(db, request, 400, message)
+    log.warn(message)
     raise HTTPException(status_code=400, detail=message)
 
-def unauthorised_access(db, request, message: str):
+def unauthorised_access(db, request, message: str, log):
     log_api(db, request, 401, message)
+    log.error(message)
     raise HTTPException(status_code=401, detail=message)
+
+def insufficient_privilege(db, request, message: str, log):
+    log_api(db, request, 404, message)
+    log.error(message)
+    raise HTTPException(status_code=404, detail=message)
+
+def raise_conflict(db, request, message: str, log):
+    log_api(db, request, 409, message)
+    log.warn(message)
+    raise HTTPException(status_code=409, detail=message)
 
 def email_trigger(subject, body, user_email):
     import smtplib

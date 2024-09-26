@@ -16,31 +16,31 @@ import json
 from threading import Thread
 import logging
 import uvicorn
-from utils import log_api, raise_validation_error, unauthorised_access
+from utils import log_api, raise_validation_error, unauthorised_access, insufficient_privilege, raise_conflict
 
 app = FastAPI()
-logging.basicConfig(level=logging.DEBUG, filename='app.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, filename='app.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # Create the tables provided in metadata
 Base.metadata.create_all(bind = engine)
 
-def validate_event_date(date_str: str) -> datetime:
+def validate_event_date(db, request, logger, date_str: str) -> datetime:
     try:
         event_date = datetime.strptime(date_str, '%d-%m-%Y')
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid date format. Use DD-MM-YYYY.")
+        raise_validation_error(db, request, "Invalid date format. Use DD-MM-YYYY.", logger)
     
     if event_date < datetime.now():
-        raise HTTPException(status_code=400, detail="The event date cannot be in the past.")
+        raise_validation_error(db, request, "The event date cannot be in the past.", logger)
     
     return event_date.date().strftime('%d-%m-%Y')
 
-def validate_event_time(time_str: str) -> datetime:
+def validate_event_time(db, request, logger, time_str: str) -> datetime:
     try:
         event_time = datetime.strptime(time_str, '%H:%M').time()
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid time format. Use HH:MM.")
+        raise_validation_error(db, request, "Invalid time format. Use HH:MM.", logger)
     
     return event_time.strftime('%H:%M')
 
@@ -109,25 +109,25 @@ def register_user(user_obj : UserRegistrationDTO, request : Request, db : db_dep
 
     # Check if the email already exists
     if db.query(User).filter(func.lower(User.email) == user_obj.email.strip().lower()).first():
-        raise_validation_error(db=db, request=request, message = "User with the same email already exists")
+        raise_validation_error(db=db, request=request, message = "User with the same email already exists", log=logger)
 
     # Validate email
     if not user_obj.email or not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", user_obj.email):
-        raise_validation_error(db=db, request=request, message = "Invalid or missing email")
+        raise_validation_error(db=db, request=request, message = "Invalid or missing email", log=logger)
 
     # Validate phone number
     if not user_obj.phone or len(user_obj.phone) < 10:
-        raise_validation_error(db=db, request=request, message = "Invalid or missing phone number")
+        raise_validation_error(db=db, request=request, message = "Invalid or missing phone number", log=logger)
 
     # Validate first name
     if not user_obj.first_name.strip():
-        raise_validation_error(db=db, request=request, message = "First Name is mandatory")
+        raise_validation_error(db=db, request=request, message = "First Name is mandatory", log=logger)
 
     # Validate password
     if not user_obj.password or len(user_obj.password.strip()) < 7:
-        raise_validation_error(db=db, request=request, message = "Password must be at least 7 characters")
+        raise_validation_error(db=db, request=request, message = "Password must be at least 7 characters", log=logger)
     if not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@#$%^&+=]+$", user_obj.password):
-        raise_validation_error(db=db, request=request, message = "Weak password: Use a combination of uppercase, lowercase, and numbers")
+        raise_validation_error(db=db, request=request, message = "Weak password: Use a combination of uppercase, lowercase, and numbers", log=logger)
 
     # Encrypt the password
     encrypted_pwd = get_password_hash(user_obj.password)
@@ -142,7 +142,7 @@ def register_user(user_obj : UserRegistrationDTO, request : Request, db : db_dep
         phone=user_obj.phone.strip()
     )
     
-    log_api(db, request, status.HTTP_201_CREATED, "User Successfully Registered")
+    log_api(db, request, status.HTTP_201_CREATED, "User Successfully Registered", log=logger)
     # Add user to the database
     db.add(new_user)
     db.commit()
@@ -158,9 +158,9 @@ def login_user(user_login_obj : UserLoginDTO, db : db_dependency, request : Requ
     db_user = db.query(User).filter(User.email == user_login_obj.email).first()
 
     if not db_user:
-        unauthorised_access(db=db, request=request, message = "Unregistered Email")
+        unauthorised_access(db=db, request=request, message = "Unregistered Email", log=logger)
     if not verify_password(user_login_obj.password, db_user.password):
-        unauthorised_access(db=db, request=request, message = "Invalid Credentials")
+        unauthorised_access(db=db, request=request, message = "Invalid Credentials", log=logger)
     if db_user.last_name is None:
         db_user.last_name = ""
 
@@ -183,7 +183,7 @@ def login_user(user_login_obj : UserLoginDTO, db : db_dependency, request : Requ
         log_id=login_obj.log_id,
         privilege=db_user.privilege
     )
-    log_api(db, request, status.HTTP_200_OK, "Successfully Logged in..!")
+    log_api(db, request, status.HTTP_200_OK, "Successfully Logged in..!", log=logger)
 
     return {"status_code": 200, "message": "Successfully Logged in..!", "body": user_passon_dto}
 
@@ -191,40 +191,40 @@ def login_user(user_login_obj : UserLoginDTO, db : db_dependency, request : Requ
 def logout_user(log_id : int, request : Request, db:db_dependency):
     user_obj = db.query(UserLog).filter(UserLog.log_id == log_id).first()
     if user_obj is None : 
-        unauthorised_access(db=db, request=request, message = "No Active Session found")
+        unauthorised_access(db=db, request=request, message = "No Active Session found", log=logger)
     user_obj.logout_tstmp = datetime.now()
-    log_api(db, request, status.HTTP_200_OK, "Successfully Logged Out")
+    log_api(db, request, status.HTTP_200_OK, "Successfully Logged Out", logger)
     db.commit()
     return {"status_code" : 200, "message" : "Suceessfully Logged out"}
 
 #-#-#-#-#-# EVENT API #-#-#-#-#-#
 # Create Event Function 
 @app.post("/create-event", status_code=201)
-def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
+def create_event(create_event_obj : EventCreateDTO, request : Request, db : db_dependency):
 
-    event_date = validate_event_date(create_event_obj.date_of_event)
-    event_time = validate_event_time(create_event_obj.time_of_event)
+    event_date = validate_event_date(db, request, logger, create_event_obj.date_of_event)
+    event_time = validate_event_time(db, request, logger,create_event_obj.time_of_event)
     
     db_user = db.query(User).filter(create_event_obj.organizer_id == User.user_id).first()
     if not db_user : 
-        raise HTTPException(status_code=404, detail="User has no previlege to organize event")
+        insufficient_privilege(db, request, "Password must be at least 7 characters", logger)
     if len(create_event_obj.event_title.strip()) == 0:
-        raise HTTPException(status_code=400, detail="Event Title is mandatory")
+        raise_validation_error(db, request, "Event Title is mandatory", logger)
     if len(create_event_obj.event_description.strip()) == 0:
-        raise HTTPException(status_code=400, detail="Event Description is mandatory")
+        raise_validation_error(db, request, "Event Description is mandatory", logger)
     if len(create_event_obj.time_of_event.strip()) == 0:
-        raise HTTPException(status_code=400, detail="Time is mandatory")
+        raise_validation_error(db, request, "Time is mandatory", logger)
     if (len(create_event_obj.location.strip()) == 0) :
-        raise HTTPException(status_code=400, detail="Location can not be empty")
+        raise_validation_error(db, request, "Location can not be empty", logger)
     
     if not create_event_obj.capacity :
-        raise HTTPException(status_code=400, detail="Capacity can not be empty")
+        raise_validation_error(db, request, "Capacity can not be empty", logger)
     elif create_event_obj.capacity <= 0 :
-        raise HTTPException(status_code=400, detail="Capacity can not be zero or invalid")
+        raise_validation_error(db, request, "Capacity can not be zero or invalid", logger)
     
     e_title = db.query(Event).filter(Event.event_title == create_event_obj.event_title).first()
     if e_title is not None :
-        raise HTTPException(status_code=409, detail = "Event Name already Exists..!")
+        raise_conflict(db, request, "Event Name already Exists..!", logger)
 
     if create_event_obj.location.lower() != "online":
 
@@ -240,7 +240,7 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
         ).first()
 
         if conflicting_event is not None:
-            raise HTTPException(status_code=409, detail="Unable to register since there is a conflicting event.")
+            raise_conflict(db, request, "Unable to register since there is a conflicting event.", logger)
 
     if db_user.privilege == "USER" :
         event_create_dto = Event(event_title = create_event_obj.event_title,
@@ -288,6 +288,7 @@ def create_event(create_event_obj : EventCreateDTO, db : db_dependency):
     db.add(event_bkp_dto)
     db.add(log_obj)
     db.commit()
+    log_api(db, request, status.HTTP_201_CREATED, "Event successfully created", log=logger)
     return {"status_code" : 201, "message" : "Event successfully created"}
 
 @app.put("/event/{event_id}")
