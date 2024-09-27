@@ -5,3 +5,4 @@ sqlalchemy
 uvicorn
 psycopg2
 smtplib
+pycodestyle
