@@ -19,7 +19,7 @@ import uvicorn
 from utils import log_api, raise_validation_error, unauthorised_access, insufficient_privilege, raise_conflict
 
 app = FastAPI()
-logging.basicConfig(level=logging.INFO, filename='app.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, filename=f'app_{datetime.now().strftime("%Y%m%d")}.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # Create the tables provided in metadata
@@ -58,15 +58,18 @@ db_dependency = Annotated[Session, Depends(get_db)]
 
 def cleanUpOlderData():
     db: Session = next(get_db())
+    logger.info("Clean Up Started...")
     curr_date = datetime.now().strftime("%d-%m-%Y")
-    print(curr_date)
     inactive_events = db.query(Event).filter(func.to_date(Event.date_of_event, 'DD-MM-YYYY') < curr_date).all()
     if len(inactive_events) == 0 :
+        logger.info("No earlier events to be Cleaned")
         print("No earlier events to be Cleaned")
     else :
+        logger.info(f"Cleaning up {len(inactive_events)} events : ")
         print(f"Cleaning up {len(inactive_events)} events : ")
         cnt = 1
         for event in inactive_events:
+            logger.info(f"{cnt}. {event.event_title} - {event.date_of_event}")
             print(f"{cnt}. {event.event_title} - {event.date_of_event}")
             
             # Updating the Status in Event Backup table to inactive and latest op to Delete
@@ -90,7 +93,8 @@ def cleanUpOlderData():
             db.delete(event)
             db.commit()
             cnt += 1
-        print(f"Clean-Up Completed")
+        logger.info("Clean-Up Completed")
+        print("Clean-Up Completed")
     
 def start_background_task():
     task_thread = Thread(target=cleanUpOlderData)
@@ -107,6 +111,7 @@ async def startup_event():
 @app.post("/user/register", status_code=201)
 def register_user(user_obj : UserRegistrationDTO, request : Request, db : db_dependency, background_tasks: BackgroundTasks):
 
+    logger.info("Endpoint Accessed - 'POST /user/register'")
     # Check if the email already exists
     if db.query(User).filter(func.lower(User.email) == user_obj.email.strip().lower()).first():
         raise_validation_error(db=db, request=request, message = "User with the same email already exists", log=logger)
@@ -155,6 +160,8 @@ def register_user(user_obj : UserRegistrationDTO, request : Request, db : db_dep
 
 @app.post("/user/login", status_code=200)
 def login_user(user_login_obj : UserLoginDTO, db : db_dependency, request : Request):
+    
+    logger.info("Endpoint Accessed - 'POST /user/login'")
     db_user = db.query(User).filter(User.email == user_login_obj.email).first()
 
     if not db_user:
@@ -189,6 +196,8 @@ def login_user(user_login_obj : UserLoginDTO, db : db_dependency, request : Requ
 
 @app.put("/user/logout/{log_id}")
 def logout_user(log_id : int, request : Request, db:db_dependency):
+
+    logger.info("Endpoint Accessed - 'PUT /user/logout'")
     user_obj = db.query(UserLog).filter(UserLog.log_id == log_id).first()
     if user_obj is None : 
         unauthorised_access(db=db, request=request, message = "No Active Session found", log=logger)
@@ -202,6 +211,7 @@ def logout_user(log_id : int, request : Request, db:db_dependency):
 @app.post("/create-event", status_code=201)
 def create_event(create_event_obj : EventCreateDTO, request : Request, db : db_dependency):
 
+    logger.info("Endpoint Accessed - 'POST /create-event'")
     event_date = validate_event_date(db, request, logger, create_event_obj.date_of_event)
     event_time = validate_event_time(db, request, logger,create_event_obj.time_of_event)
     
