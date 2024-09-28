@@ -32,10 +32,9 @@ function Index() {
 
     const logout = async () => {
         try {
-            const res = await userService.logoutUser(logId);
-            console.log(res);
+            await userService.logoutUser(logId);
         } catch (err) {
-            console.log(err);
+            console.error(err);
         }
     };
 
@@ -45,7 +44,7 @@ function Index() {
                 localStorage.clear();
                 logout();
                 setTimeout(() => {
-                    window.location.href = "/"; // Redirect to home after sign out
+                    window.location.href = "/";
                 }, 1500);
             },
             "Signing out"
@@ -60,7 +59,7 @@ function Index() {
                         isNavOpen={isNavOpen}
                         handleSignout={handleSignout}
                         toggleNav={toggleNav}
-                        closeNav={closeNav}  // Pass closeNav function
+                        closeNav={closeNav}
                     />
                     <div className="main-content">
                         <header className="app-header">

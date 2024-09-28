@@ -23,7 +23,7 @@ const RegCard = ({ event }) => {
                     fontWeight : "bold"
                 }}
             >
-                Registered as : {event.attendee_name || 'Pending'} {/* Fallback if status is not provided */}
+                Registered as : {event.attendee_name || 'Pending'}
             </div>
             {expanded && (
                 <div className="expanded-content">

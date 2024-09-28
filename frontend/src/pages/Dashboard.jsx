@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import "./Dashboard.css"; // Ensure you create this CSS file for styles
+import "./Dashboard.css";
 
 const Dashboard = () => {
     const userRole = localStorage.getItem("role");

@@ -10,7 +10,7 @@ const EventRegCard = ({ event, sourcePage }) => {
     };
 
     const handlePost = () => {
-        navigate(`/dashboard/register-event/${event.event_id}`, { state: { from: sourcePage } }); // Navigate to the EditEventPage with the event ID
+        navigate(`/dashboard/register-event/${event.event_id}`, { state: { from: sourcePage } });
     };
 
     return (

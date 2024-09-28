@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaEye, FaEyeSlash } from "react-icons/fa";  // Importing eye icons
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import SweetAlert from "../sweetalerts/SweetAlert";
 import userService from "../services/userService";
 import { useNavigate } from "react-router-dom";
@@ -21,14 +21,11 @@ const Registration = () => {
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
     const navigate = useNavigate()
-
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const redirect = () => {
         navigate("/")
     }
-
-    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
     const handleNameChange = (e) => {
         setfirst_name(e.target.value);
@@ -161,13 +158,12 @@ const Registration = () => {
                 password,
                 phone,
             };
-            console.log(data);
             await userService.registerUser(data);
             SweetAlert.registrationSuccessFireAlert();
             navigate("/login");
 
         } catch (error) {
-            console.log(error);
+            console.error(error);
             if (error.response.data.detail === "User with same Email already exists") {
                 Swal.fire({
                     timer : 2000,

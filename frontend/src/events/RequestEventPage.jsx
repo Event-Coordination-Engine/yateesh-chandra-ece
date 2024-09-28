@@ -34,17 +34,11 @@ const RequestEventPage = () => {
         e.preventDefault();
         
         try {
-            // Create a new object with the updated date format
             const updatedFormData = {
                 ...formData,
                 date_of_event: convertDateFormat(formData.date_of_event),
             };
-    
-            // Call the API with the updated form data
             await eventService.createEvent(updatedFormData);
-            
-            console.log("Event Added");
-            
             Swal.fire({
                 title: "Event Added",
                 icon: "success",
@@ -58,10 +52,8 @@ const RequestEventPage = () => {
                 text: err.response.data.detail,
                 icon: "error",
             });
-            console.log(err);
+            console.error(err);
         }
-        
-        console.log("Form submitted:", formData);
     };
     
     return (
