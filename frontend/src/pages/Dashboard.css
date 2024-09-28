@@ -1,6 +1,5 @@
 .home-page {
     padding: 20px;
-    /* background-color: #f4f4f4; */
 }
 
 .home-header {
@@ -36,21 +35,21 @@
 .info-icon {
     display: inline-block;
     position: relative;
-    margin-left: 10px; /* Space between button and icon */
+    margin-left: 10px;
     cursor: pointer;
 }
 
 .tooltip {
     position: absolute;
-    top: 100%; /* Position below the icon */
+    top: 100%;
     left: 50%;
     background-color: #333;
     color: white;
     padding: 5px 10px;
     border-radius: 5px;
-    white-space: nowrap; /* Prevent line breaks */
+    white-space: nowrap;
     z-index: 100; 
-    margin-top: 5px; /* Space above tooltip */
+    margin-top: 5px;
     opacity: 0.9;
     transition: opacity 0.3s;
 }
@@ -86,7 +85,6 @@
 .event-list-1 {
     display: flex;
     flex-direction: row;
-    /* gap: 15px;*/
     justify-content: space-around;
 }
 
