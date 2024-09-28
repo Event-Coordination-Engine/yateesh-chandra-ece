@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks, status, Request
+from fastapi import FastAPI, Depends, BackgroundTasks, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from database import Base, SessionLocal, engine
 from dto import UserRegistrationDTO, UserLoginDTO, UserResponseDTO,\
@@ -513,37 +513,38 @@ def approve_all_event(db : db_dependency, background_tasks : BackgroundTasks, re
     return {"status_code" : 200, "message" : "events approved"}
 
 @app.post("/register_event", status_code=201)
-def register_for_event(reg_dto: RegisterForEvent, db: db_dependency):
+def register_for_event(reg_dto: RegisterForEvent, db: db_dependency, request : Request):
+    logger.info(f"Endpoint Accessed - 'POST /register_event'")
     user_check = db.query(User).filter(User.user_id == reg_dto.user_id).first()
     if user_check is None:
-        raise HTTPException(status_code=404, detail=f"User with User ID: {reg_dto.user_id} does not exist")
+        raise_validation_error(db, request, 404, f"User with User ID: {reg_dto.user_id} does not exist", logger)
     
     event_check = db.query(Event).filter(Event.event_id == reg_dto.event_id).first()
     if event_check is None:
-        raise HTTPException(status_code=404, detail=f"Event with Event ID: {reg_dto.event_id} does not exist")
+        raise_validation_error(db, request, 404, f"Event with Event ID: {reg_dto.event_id} does not exist", logger)
     elif event_check.status != 'approved':
-        raise HTTPException(status_code=409, detail="Unable to register since Event is not yet approved")
+        raise_validation_error(db, request, 409, "Unable to register since Event is not yet approved", logger)
     elif event_check.organizer_id == reg_dto.user_id:
-        raise HTTPException(status_code=409, detail="Cannot register since user is organizer")
+        raise_validation_error(db, request, 409,"Cannot register since user is organizer", logger)
     
     # Check if the email is already registered for the same event
     email_check = db.query(Attendee).filter(Attendee.email == reg_dto.email, Attendee.event_id == reg_dto.event_id).first()
     if email_check is not None:
         if email_check.users.privilege == "ADMIN":
-            raise HTTPException(status_code=409, detail="Oops. Admin is blocked from Registration.!")
-        raise HTTPException(status_code=409, detail="Email already registered for this event")
+            raise_validation_error(db, request, 409, "Oops. Admin is blocked from Registration.!", logger)
+        raise_validation_error(db, request, 409, "Email already registered for this event", logger)
 
     event_count = db.query(Attendee).filter(Attendee.event_id == reg_dto.event_id).count()
     if event_count >= event_check.capacity:
-        raise HTTPException(status_code=409, detail="Cannot register since max Capacity reached")
+        raise_validation_error(db, request, 409, "Cannot register since max Capacity reached", logger)
 
     if not reg_dto.email.strip():
-        raise HTTPException(status_code=400, detail="Email cannot be empty")
+        raise_validation_error(db, request, 400, "Email cannot be empty", logger)
     if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", reg_dto.email):
-        raise HTTPException(status_code=400, detail="Invalid Email Format")
+        raise_validation_error(db, request, 400, "Invalid Email Format", logger)
     if reg_dto.phone:
         if len(reg_dto.phone) < 10:
-            raise HTTPException(status_code=400, detail="Phone Number should not be less than 10 digits")
+            raise_validation_error(db, request, 400, "Phone Number should not be less than 10 digits", logger)
 
     registration_obj = Attendee(
         user_id=reg_dto.user_id,
@@ -563,6 +564,7 @@ def register_for_event(reg_dto: RegisterForEvent, db: db_dependency):
     db.add(reg_obj)
     db.add(registration_obj)
     db.commit()
+    log_api(db, request, status.HTTP_200_OK, "Registered for the event successfully", logger)
     return {"status_code": 201, "message": "Registered for the event successfully"}
 
 
