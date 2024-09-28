@@ -3,8 +3,8 @@ Backend/__pycache__
 Backend/page.css
 Backend/page.html
 node_modules
-public
-*.json
+frontend/public/*
+frontend/package-lock.json
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
@@ -31,3 +31,5 @@ test-frontend
 Backend/loggers
 Backend/log_check.py
 Backend/test1.py
+
+!frontend/public/index.html
