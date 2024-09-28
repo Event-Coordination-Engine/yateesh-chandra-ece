@@ -19,7 +19,7 @@ import uvicorn
 from utils import log_api, raise_validation_error
 
 app = FastAPI()
-logging.basicConfig(level=logging.INFO, filename=f'app_{datetime.now().strftime("%Y%m%d")}.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, filename=f'loggers/app_{datetime.now().strftime("%Y%m%d")}.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # Create the tables provided in metadata
@@ -104,6 +104,7 @@ def start_background_task():
 
 @app.on_event("startup")
 async def startup_event():
+    logger.info("Backend Started..!")
     start_background_task()
 
 #-#-#-#-#-# USER API #-#-#-#-#-#
@@ -394,33 +395,33 @@ def update_event(update_event_obj: EventUpdateDTO, event_id: int, db: db_depende
 @app.get("/all-events")
 def get_all_events(db : db_dependency, request:Request) :
     logger.info("Endpoint Accessed - 'GET /all-events'")
-    result = db.query(Event).all()
     log_api(db, request, status.HTTP_200_OK, "All Events Fetched", log=logger)
+    result = db.query(Event).all()
     return{"status_code" : 200, "body" : result}
 
 @app.get("/pending-events")
 def get_pending_events(db : db_dependency, request:Request) :
     logger.info("Endpoint Accessed - 'GET /pending-events'")
-    result = db.query(Event).filter(Event.status == "pending").all()
     log_api(db, request, status.HTTP_200_OK, "Pending Events fetched", log=logger)
+    result = db.query(Event).filter(Event.status == "pending").all()
     return{"status_code" : 200, "body" : result}
 
 @app.get("/approved-events")
 def get_approved_events(db : db_dependency, request:Request) :
     logger.info("Endpoint Accessed - 'GET /approved-events'")
+    log_api(db, request, status.HTTP_200_OK, "Pending Events fetched", log=logger)
     date_to_show = (datetime.now() + timedelta(days=2)).strftime("%d-%m-%Y")
     result = db.query(Event).filter(Event.status == "approved",  
                                     func.to_date(Event.date_of_event, 'DD-MM-YYYY') >= date_to_show
                                     ).all()
-    log_api(db, request, status.HTTP_200_OK, "Pending Events fetched", log=logger)
     return{"status_code" : 200, "body" : result}
 
 @app.get("/available-events/{user_id}")
 def get_available_events(user_id : int, db : db_dependency, request:Request) :
     logger.info(f"Endpoint Accessed - 'GET /available-events/{user_id}'")
+    log_api(db, request, status.HTTP_200_OK, f"Available Events fetched for User : {user_id}", log=logger)
     date_to_show = (datetime.now() + timedelta(days=2)).strftime("%d-%m-%Y")
     result = db.query(Event).filter(Event.status == "approved", Event.organizer_id != user_id, func.to_date(Event.date_of_event, 'DD-MM-YYYY') >= date_to_show).all()
-    log_api(db, request, status.HTTP_200_OK, f"Available Events fetched for User : {user_id}", log=logger)
     return{"status_code" : 200, "body" : result}
 
 @app.delete("/delete-event/{event_id}")
@@ -447,28 +448,28 @@ def delete_event(event_id : int, db:db_dependency,request:Request):
 @app.get("/event/{event_id}")
 def get_event_by_id(event_id : int, db: db_dependency, request : Request):
     logger.info(f"Endpoint Accessed - 'GET /event/{event_id}'")
+    log_api(db, request, status.HTTP_200_OK, f"Fetching Event : {event_id}", logger)
     result = db.query(Event).filter(Event.event_id == event_id).first()
     if result is None :
         raise_validation_error(db, request, 404, f"No Event found with id : {event_id}", logger)
-    log_api(db, request, status.HTTP_200_OK, f"Event fetched with Event : {event_id}", logger)
     return {"status_code" : 200, "body" : result}
 
 @app.get("/event_by_user/{user_id}")
 def get_event_by_user_id(user_id : int, db : db_dependency, request: Request):
     logger.info(f"Endpoint Accessed - 'GET /event_by_user/{user_id}'")
+    log_api(db, request, status.HTTP_200_OK, f"Fetching Event for user : {user_id}", logger)
     result = db.query(Event).filter(Event.organizer_id == user_id).all()
     if result is None:
         raise_validation_error(db, request, 404, f"No event organised by user : {user_id}", logger)
-    log_api(db, request, status.HTTP_200_OK, f"Events fetched for user : {user_id}", logger)
     return {"status_code" : 200, "body" : result}
 
 @app.get("/event_by_user/pending/{user_id}")
 def get_pending_event_by_user_id(user_id : int, db : db_dependency, request : Request):
     logger.info(f"Endpoint Accessed - 'GET /event_by_user/pending/{user_id}'")
+    log_api(db, request, status.HTTP_200_OK, f"Pending Events fetching for user : {user_id}", logger)
     result = db.query(Event).filter(Event.organizer_id == user_id).filter(Event.status == "pending").all()
     if result is None:
         raise_validation_error(db, request, 404, f"No event organised by user : {user_id}", logger)
-    log_api(db, request, status.HTTP_200_OK, f"Pending Events fetched for user : {user_id}", logger)
     return {"status_code" : 200, "body" : result}
 
 @app.put("/approve-event/{event_id}")
@@ -513,7 +514,7 @@ def approve_all_event(db : db_dependency, background_tasks : BackgroundTasks, re
     return {"status_code" : 200, "message" : "events approved"}
 
 @app.post("/register_event", status_code=201)
-def register_for_event(reg_dto: RegisterForEvent, db: db_dependency, request : Request):
+def register_for_event(reg_dto: RegisterForEvent, db: db_dependency,background_tasks : BackgroundTasks, request : Request):
     logger.info(f"Endpoint Accessed - 'POST /register_event'")
     user_check = db.query(User).filter(User.user_id == reg_dto.user_id).first()
     if user_check is None:
@@ -563,6 +564,7 @@ def register_for_event(reg_dto: RegisterForEvent, db: db_dependency, request : R
     )
     db.add(reg_obj)
     db.add(registration_obj)
+    background_tasks.add_task(utils.gratitude_email, reg_dto.attendee_name, event_check.event_title, event_check.date_of_event, event_check.time_of_event, event_check.location, event_check.event_description, reg_dto.email)
     db.commit()
     log_api(db, request, status.HTTP_200_OK, "Registered for the event successfully", logger)
     return {"status_code": 201, "message": "Registered for the event successfully"}
@@ -571,6 +573,7 @@ def register_for_event(reg_dto: RegisterForEvent, db: db_dependency, request : R
 @app.get("/registered_event/users/{user_id}")
 def get_registered_events_by_event_id(user_id: int, db: db_dependency, request : Request):
     logger.info(f"Endpoint Accessed - 'GET /registered_event/users/{user_id}'")
+    log_api(db, request, status.HTTP_200_OK, f"Registered Events fetched for User : {user_id}", log=logger)
     result = db.query(Attendee).filter(Attendee.user_id == user_id).all()
 
     return_dto: List[GetRegisteredUserDTO] = []
@@ -591,12 +594,12 @@ def get_registered_events_by_event_id(user_id: int, db: db_dependency, request :
             registration_date=datetime.strftime(attendee.registration_timestamp.date(), '%d-%m-%Y')
         )
         return_dto.append(dto)
-    log_api(db, request, status.HTTP_200_OK, f"Registered Events fetched for User : {user_id}", log=logger)
     return {"status": 200, "message": "Events fetched successfully", "body": return_dto}
 
 @app.get("/registered_event/events/{event_id}")
 def get_registered_events_by_event_id(event_id: int, db: db_dependency, request:Request):
     logger.info(f"Endpoint Accessed - 'GET /registered_event/events/{event_id}'")
+    log_api(db, request, status.HTTP_200_OK, f"Registrations fetched for EVENT : {event_id}", log=logger)
     result = db.query(Attendee).filter(Attendee.event_id == event_id).all()
     return_dto: List[GetUsersForEventDTO] = [
         GetUsersForEventDTO(attendee_name=attendee.attendee_name,
@@ -604,12 +607,12 @@ def get_registered_events_by_event_id(event_id: int, db: db_dependency, request:
                             phone=attendee.phone,
                             registration_date=datetime.strftime(attendee.registration_timestamp.date(), '%d-%m-%Y')) for attendee in result
     ]
-    log_api(db, request, status.HTTP_200_OK, f"Registrations fetched for EVENT : {event_id}", log=logger)
     return {"status": 200, "message": "Registrations fetched successfully", "body": return_dto}
 
 @app.get("/all_registered_events")
 def get_all_registered_events(db: db_dependency, request : Request):
     logger.info(f"Endpoint Accessed - 'GET /all_registered_events'")
+    log_api(db, request, status.HTTP_200_OK, f"All Registrations fetched", log=logger)
     result = db.query(Attendee).all()
 
     return_dto: List[GetAllRegistrationsDTO] = []
@@ -632,14 +635,13 @@ def get_all_registered_events(db: db_dependency, request : Request):
             event_name=event.event_title if event else None
         )
         return_dto.append(dto)
-    log_api(db, request, status.HTTP_200_OK, f"All Registrations fetched", log=logger)
     return {"status": 200, "message": "All Events fetched successfully", "body": return_dto}
 
 @app.get("/all_inactive_events")
 def get_inactive_events(db : db_dependency, request : Request):
     logger.info(f"Endpoint Accessed - 'GET /all_inactive_events'")
+    log_api(db, request, status.HTTP_200_OK, f"All Inactive Events fetched", log=logger)
     result = db.query(Attendee_Bkp).filter(Attendee_Bkp.reg_status == 'inactive').all()
-
     return_dto: List[GetAllRegistrationsDTO] = []
 
     for attendee in result:
@@ -660,7 +662,6 @@ def get_inactive_events(db : db_dependency, request : Request):
             event_name=event.event_title if event else None
         )
         return_dto.append(dto)
-    log_api(db, request, status.HTTP_200_OK, f"All Inactive Events fetched", log=logger)
     return {"status": 200, "message": "All Inactive Events fetched successfully", "body": return_dto}
 
 @app.on_event("shutdown")
@@ -673,6 +674,7 @@ def shutdown_event():
             record.logout_tstmp = datetime.now()
         
         db.commit()
+        logger.info("Backend Shut Down..!")
     except Exception as e:
         db.rollback()  # Rollback in case of any errors
         print(f"Error during shutdown event: {e}")

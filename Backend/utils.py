@@ -3,7 +3,7 @@ from datetime import datetime
 from http import HTTPStatus
 from model import Api_Audit
 
-def log_api(db, request: Request, response_code: int, message: str, log = None):
+def log_api(db , request : Request, response_code: int, message: str, log = None):
     status_message = HTTPStatus(response_code).phrase  # Get the standard message for the status code
     api_obj = Api_Audit(api_method = request.method, 
                     api_endpoint = request.url.path,
@@ -14,7 +14,6 @@ def log_api(db, request: Request, response_code: int, message: str, log = None):
         log.info(message)
     db.add(api_obj)
     db.commit()
-    return {"message" : "log added"}
 
 def raise_validation_error(db, request, code, message: str, log):
     log_api(db, request, code, message)
@@ -136,7 +135,7 @@ def registration_email(user_email, user_name):
             </div>
             <div class="footer">
                 <p>If you have any questions, feel free to <a href="mailto:support@yourplatform.com">contact us</a>.</p>
-                <p>&copy; 2024 Your Platform. All rights reserved.</p>
+                <p>&copy; 2024 ECE Platform. All rights reserved.</p>
             </div>
         </div>
         </body>
@@ -310,7 +309,181 @@ def approval_email(user_name, event_name, date, time, location, description, use
 
                 <div class="footer">
                     <p>Questions? <a href="mailto:ece.operations01@gmail.com">Contact Support</a></p>
-                    <p>&copy; 2024 Your Event Platform. All rights reserved.</p>
+                    <p>&copy; 2024 ECE Platform. All rights reserved.</p>
+                </div>
+                </div>
+            </body>
+            </html>
+            """
+    email_trigger(subject, body, user_email)
+
+def gratitude_email(user_name, event_name, date, time, location, description, user_email):
+    subject = "Hearty Thanks on your registration..!"
+    body = f"""
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                <style>
+                body {{
+                    font-family: 'Arial', sans-serif;
+                    background-color: #f9f9f9;
+                    margin: 0;
+                    padding: 0;
+                }}
+                .email-container {{
+                    width: 100%;
+                    max-width: 600px;
+                    margin: 0 auto;
+                    background-color: #ffffff;
+                    border-radius: 12px;
+                    overflow: hidden;
+                    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+                    animation: slide-in 0.6s ease-out;
+                    border-top: 5px solid #ffc107;
+                }}
+                @keyframes slide-in {{
+                    from {{
+                    opacity: 0;
+                    transform: translateY(20px);
+                    }}
+                    to {{
+                    opacity: 1;
+                    transform: translateY(0);
+                    }}
+                }}
+                .header {{
+                    background: linear-gradient(135deg, #4a1bb1, #2575fc);
+                    padding: 20px;
+                    text-align: center;
+                    color: #ffffff;
+                    border-radius: 12px 12px 0 0;
+                }}
+                .header img {{
+                    width: 120px;
+                    margin: 0 auto 15px;
+                    display: block;
+                    border-radius: 50%;
+                }}
+                .header h1 {{
+                    font-size: 28px;
+                    margin: 0;
+                    font-weight: bold;
+                    color: #ffd700;
+                }}
+                .content {{
+                    padding: 20px;
+                    text-align: left;
+                    color: #333333;
+                }}
+                .content h2 {{
+                    font-size: 24px;
+                    color: #2575fc;
+                    margin-bottom: 10px;
+                }}
+                .content p {{
+                    font-size: 16px;
+                    line-height: 1.8;
+                    margin-bottom: 20px;
+                    color: #555555;
+                }}
+                .content table {{
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                    background-color: #f3f4f6;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                }}
+                table, th, td {{
+                    border: none;
+                }}
+                th, td {{
+                    padding: 15px;
+                    text-align: left;
+                    font-size: 16px;
+                    color: #333333;
+                    border-bottom: 1px solid #e0e0e0;
+                }}
+                th {{
+                    background-color: #ffc107;
+                    color: #ffffff;
+                }}
+                td {{
+                    background-color: #ffffff;
+                }}
+                .content .cta {{
+                    text-align: center;
+                    margin-top: 20px;
+                }}
+                .cta-button {{
+                    background-color: #2575fc;
+                    color: #ffffff;
+                    padding: 15px 40px;
+                    text-decoration: none;
+                    border-radius: 50px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    display: inline-block;
+                    transition: background 0.3s ease;
+                }}
+                .cta-button:hover {{
+                    background-color: #6a11cb;
+                }}
+                .footer {{
+                    background-color: #f3f4f6;
+                    padding: 20px;
+                    text-align: center;
+                    font-size: 14px;
+                    color: #999999;
+                    border-top: 2px solid #ffc107;
+                }}
+                .footer a {{
+                    color: #2575fc;
+                    text-decoration: none;
+                }}
+                </style>
+            </head>
+            <body>
+                <div class="email-container">
+                <div class="header">
+                    <img src="https://static.vecteezy.com/system/resources/previews/004/686/638/non_2x/approve-stickman-businessman-was-approved-and-very-happy-hand-drawn-outline-cartoon-illustration-free-vector.jpg" alt="Event Approved">
+                    <h1>Gratitude Giving.!</h1>
+                </div>
+
+                <div class="content">
+                    <h2>Hey {user_name},</h2>
+                    <p>Hearty Thanks for your Registration! Below are the details of your event:</p>
+                    <table>
+                    <tr>
+                        <th>Event Name</th>
+                        <td>{event_name}</td>
+                    </tr>
+                    <tr>
+                        <th>Date</th>
+                        <td>{date}</td>
+                    </tr>
+                    <tr>
+                        <th>Time</th>
+                        <td>{time}</td>
+                    </tr>
+                    <tr>
+                        <th>Location</th>
+                        <td>{location}</td>
+                    </tr>
+                    <tr>
+                        <th>Description</th>
+                        <td>{description}</td>
+                    </tr>
+                    </table>
+
+                    <p>If you need any further assistance, feel free to reach out to us at any time!</p>
+                </div>
+
+                <div class="footer">
+                    <p>Questions? <a href="mailto:ece.operations01@gmail.com">Contact Support</a></p>
+                    <p>&copy; 2024 ECE Platform. All rights reserved.</p>
                 </div>
                 </div>
             </body>
