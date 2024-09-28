@@ -101,7 +101,7 @@ def cleanUpOlderData():
 def trigger_email():
     while True:
         p = datetime.now().time()
-        if p.strftime('%H:%M:%S') == "22:50:00":
+        if p.strftime('%H:%M:%S') == "23:30:00":
             requests.get("http://127.0.0.1:8083/daily_recom")
 
 def start_background_task():
@@ -675,14 +675,16 @@ def get_inactive_events(db : db_dependency, request : Request):
 
 @app.get("/daily_recom")
 async def recommend_event(db : db_dependency):
+    logger.info("Emails Trigger started..!")
     user = db.query(User).all()
-    logger.info("Emails Trigger in Progress..!")
     for i in user :
         if i.privilege == "USER" :
             event_id = random.choice([i.event_id for i in db.query(Event).filter(Event.status == 'approved').all()])
             event = db.query(Event).filter(Event.event_id == event_id).first()
             utils.recommended_events(i.email, i.first_name, event.event_title, event.event_description, event.date_of_event, event.time_of_event)
             logger.info(f"Email sent to {i.email}")
+    logger.info("All the emails are sent")
+        
     return {"response" : "All the emails are sent"}
 
 @app.on_event("shutdown")
