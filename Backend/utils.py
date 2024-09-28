@@ -16,25 +16,10 @@ def log_api(db, request: Request, response_code: int, message: str, log = None):
     db.commit()
     return {"message" : "log added"}
 
-def raise_validation_error(db, request, message: str, log):
-    log_api(db, request, 400, message)
+def raise_validation_error(db, request, code, message: str, log):
+    log_api(db, request, code, message)
     log.warn(message)
-    raise HTTPException(status_code=400, detail=message)
-
-def unauthorised_access(db, request, message: str, log):
-    log_api(db, request, 401, message)
-    log.error(message)
-    raise HTTPException(status_code=401, detail=message)
-
-def insufficient_privilege(db, request, message: str, log):
-    log_api(db, request, 404, message)
-    log.error(message)
-    raise HTTPException(status_code=404, detail=message)
-
-def raise_conflict(db, request, message: str, log):
-    log_api(db, request, 409, message)
-    log.warn(message)
-    raise HTTPException(status_code=409, detail=message)
+    raise HTTPException(status_code=code, detail=message)
 
 def email_trigger(subject, body, user_email):
     import smtplib

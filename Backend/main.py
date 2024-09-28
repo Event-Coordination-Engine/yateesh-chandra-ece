@@ -16,7 +16,7 @@ import json
 from threading import Thread
 import logging
 import uvicorn
-from utils import log_api, raise_validation_error, unauthorised_access, insufficient_privilege, raise_conflict
+from utils import log_api, raise_validation_error
 
 app = FastAPI()
 logging.basicConfig(level=logging.INFO, filename=f'app_{datetime.now().strftime("%Y%m%d")}.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s')
@@ -29,10 +29,10 @@ def validate_event_date(db, request, logger, date_str: str) -> datetime:
     try:
         event_date = datetime.strptime(date_str, '%d-%m-%Y')
     except ValueError:
-        raise_validation_error(db, request, "Invalid date format. Use DD-MM-YYYY.", logger)
+        raise_validation_error(db, request, 400, "Invalid date format. Use DD-MM-YYYY.", logger)
     
     if event_date < datetime.now():
-        raise_validation_error(db, request, "The event date cannot be in the past.", logger)
+        raise_validation_error(db, request, 400, "The event date cannot be in the past.", logger)
     
     return event_date.date().strftime('%d-%m-%Y')
 
@@ -40,7 +40,7 @@ def validate_event_time(db, request, logger, time_str: str) -> datetime:
     try:
         event_time = datetime.strptime(time_str, '%H:%M').time()
     except ValueError:
-        raise_validation_error(db, request, "Invalid time format. Use HH:MM.", logger)
+        raise_validation_error(db, request, 400, "Invalid time format. Use HH:MM.", logger)
     
     return event_time.strftime('%H:%M')
 
@@ -114,25 +114,25 @@ def register_user(user_obj : UserRegistrationDTO, request : Request, db : db_dep
     logger.info("Endpoint Accessed - 'POST /user/register'")
     # Check if the email already exists
     if db.query(User).filter(func.lower(User.email) == user_obj.email.strip().lower()).first():
-        raise_validation_error(db=db, request=request, message = "User with the same email already exists", log=logger)
+        raise_validation_error(db, request, 400, "User with the same email already exists", logger)
 
     # Validate email
     if not user_obj.email or not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", user_obj.email):
-        raise_validation_error(db=db, request=request, message = "Invalid or missing email", log=logger)
+        raise_validation_error(db, request, 400, "Invalid or missing email", logger)
 
     # Validate phone number
     if not user_obj.phone or len(user_obj.phone) < 10:
-        raise_validation_error(db=db, request=request, message = "Invalid or missing phone number", log=logger)
+        raise_validation_error(db, request, 400, "Invalid or missing phone number", logger)
 
     # Validate first name
     if not user_obj.first_name.strip():
-        raise_validation_error(db=db, request=request, message = "First Name is mandatory", log=logger)
+        raise_validation_error(db, request, 400, "First Name is mandatory", logger)
 
     # Validate password
     if not user_obj.password or len(user_obj.password.strip()) < 7:
-        raise_validation_error(db=db, request=request, message = "Password must be at least 7 characters", log=logger)
+        raise_validation_error(db, request, 400, "Password must be at least 7 characters", logger)
     if not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@#$%^&+=]+$", user_obj.password):
-        raise_validation_error(db=db, request=request, message = "Weak password: Use a combination of uppercase, lowercase, and numbers", log=logger)
+        raise_validation_error(db, request, 400, "Weak password: Use a combination of uppercase, lowercase, and numbers", logger)
 
     # Encrypt the password
     encrypted_pwd = get_password_hash(user_obj.password)
@@ -147,11 +147,10 @@ def register_user(user_obj : UserRegistrationDTO, request : Request, db : db_dep
         phone=user_obj.phone.strip()
     )
     
-    log_api(db, request, status.HTTP_201_CREATED, "User Successfully Registered", log=logger)
     # Add user to the database
     db.add(new_user)
     db.commit()
-
+    log_api(db, request, status.HTTP_201_CREATED, "User Successfully Registered", log=logger)
     # Send a registration email in the background
     user_name = f"{new_user.first_name} {new_user.last_name}".strip()
     background_tasks.add_task(utils.registration_email, new_user.email, user_name)
@@ -165,9 +164,9 @@ def login_user(user_login_obj : UserLoginDTO, db : db_dependency, request : Requ
     db_user = db.query(User).filter(User.email == user_login_obj.email).first()
 
     if not db_user:
-        unauthorised_access(db=db, request=request, message = "Unregistered Email", log=logger)
+        raise_validation_error(db, request, 401, "Unregistered Email", logger)
     if not verify_password(user_login_obj.password, db_user.password):
-        unauthorised_access(db=db, request=request, message = "Invalid Credentials", log=logger)
+        raise_validation_error(db, request, 401, "Invalid Credentials", logger)
     if db_user.last_name is None:
         db_user.last_name = ""
 
@@ -191,7 +190,6 @@ def login_user(user_login_obj : UserLoginDTO, db : db_dependency, request : Requ
         privilege=db_user.privilege
     )
     log_api(db, request, status.HTTP_200_OK, "Successfully Logged in..!", log=logger)
-
     return {"status_code": 200, "message": "Successfully Logged in..!", "body": user_passon_dto}
 
 @app.put("/user/logout/{log_id}")
@@ -200,10 +198,10 @@ def logout_user(log_id : int, request : Request, db:db_dependency):
     logger.info("Endpoint Accessed - 'PUT /user/logout'")
     user_obj = db.query(UserLog).filter(UserLog.log_id == log_id).first()
     if user_obj is None : 
-        unauthorised_access(db=db, request=request, message = "No Active Session found", log=logger)
+        raise_validation_error(db, request, 401, "No Active Session found", logger)
     user_obj.logout_tstmp = datetime.now()
-    log_api(db, request, status.HTTP_200_OK, "Successfully Logged Out", logger)
     db.commit()
+    log_api(db, request, status.HTTP_200_OK, "Successfully Logged Out", logger)
     return {"status_code" : 200, "message" : "Suceessfully Logged out"}
 
 #-#-#-#-#-# EVENT API #-#-#-#-#-#
@@ -217,24 +215,24 @@ def create_event(create_event_obj : EventCreateDTO, request : Request, db : db_d
     
     db_user = db.query(User).filter(create_event_obj.organizer_id == User.user_id).first()
     if not db_user : 
-        insufficient_privilege(db, request, "Password must be at least 7 characters", logger)
+        raise_validation_error(db, request, 404, "User has no previlege to organize event", logger)
     if len(create_event_obj.event_title.strip()) == 0:
-        raise_validation_error(db, request, "Event Title is mandatory", logger)
+        raise_validation_error(db, request, 400, "Event Title is mandatory", logger)
     if len(create_event_obj.event_description.strip()) == 0:
-        raise_validation_error(db, request, "Event Description is mandatory", logger)
+        raise_validation_error(db, request, 400, "Event Description is mandatory", logger)
     if len(create_event_obj.time_of_event.strip()) == 0:
-        raise_validation_error(db, request, "Time is mandatory", logger)
+        raise_validation_error(db, request, 400, "Time is mandatory", logger)
     if (len(create_event_obj.location.strip()) == 0) :
-        raise_validation_error(db, request, "Location can not be empty", logger)
+        raise_validation_error(db, request, 400, "Location can not be empty", logger)
     
     if not create_event_obj.capacity :
-        raise_validation_error(db, request, "Capacity can not be empty", logger)
+        raise_validation_error(db, request, 400, "Capacity can not be empty", logger)
     elif create_event_obj.capacity <= 0 :
-        raise_validation_error(db, request, "Capacity can not be zero or invalid", logger)
+        raise_validation_error(db, request, 400, "Capacity can not be zero or invalid", logger)
     
     e_title = db.query(Event).filter(Event.event_title == create_event_obj.event_title).first()
     if e_title is not None :
-        raise_conflict(db, request, "Event Name already Exists..!", logger)
+        raise_validation_error(db, request, 409, "Event Name already Exists..!", logger)
 
     if create_event_obj.location.lower() != "online":
 
@@ -250,7 +248,7 @@ def create_event(create_event_obj : EventCreateDTO, request : Request, db : db_d
         ).first()
 
         if conflicting_event is not None:
-            raise_conflict(db, request, "Unable to register since there is a conflicting event.", logger)
+            raise_validation_error(db, request, 409, "Unable to register since there is a conflicting event.", logger)
 
     if db_user.privilege == "USER" :
         event_create_dto = Event(event_title = create_event_obj.event_title,
@@ -302,7 +300,8 @@ def create_event(create_event_obj : EventCreateDTO, request : Request, db : db_d
     return {"status_code" : 201, "message" : "Event successfully created"}
 
 @app.put("/event/{event_id}")
-def update_event(update_event_obj: EventUpdateDTO, event_id: int, db: db_dependency):
+def update_event(update_event_obj: EventUpdateDTO, event_id: int, db: db_dependency, request : Request):
+    logger.info(f"Endpoint Accessed - 'PUT /event/{event_id}'")
     result = db.query(Event).filter(Event.event_id == event_id).first()
     result_bkp = db.query(EventBackUp).filter(EventBackUp.event_id == event_id).first()
     print(update_event_obj.date_of_event)
@@ -323,32 +322,33 @@ def update_event(update_event_obj: EventUpdateDTO, event_id: int, db: db_depende
     else:
         message = "No Changes Done"
 
+    logger.info(message)
     print(message)
 
     if result is None:
-        raise HTTPException(status_code=404, detail="No Event found with Id")
+        raise_validation_error(db, request, 404, f"No event with id : {event_id}", logger)
 
     event_date = validate_event_date(update_event_obj.date_of_event)
     event_time = validate_event_time(update_event_obj.time_of_event)
 
     db_user = db.query(User).filter(update_event_obj.organizer_id == User.user_id).first()
     if not db_user:
-        raise HTTPException(status_code=404, detail="User has no privilege to organize event")
+        raise_validation_error(db, request, 404, "User has no privilege to organize event", logger)
     if len(update_event_obj.event_title.strip()) == 0:
-        raise HTTPException(status_code=400, detail="Event Title is mandatory")
+        raise_validation_error(db, request, 400, "Event Title is mandatory", logger)
     if len(update_event_obj.event_description.strip()) == 0:
-        raise HTTPException(status_code=400, detail="Event Description is mandatory")
+        raise_validation_error(db, request, 400, "Event Description is mandatory", logger)
     if len(update_event_obj.time_of_event.strip()) == 0:
-        raise HTTPException(status_code=400, detail="Time is mandatory")
+        raise_validation_error(db, request, 400, "Time is mandatory", logger)
     if len(update_event_obj.location.strip()) == 0:
-        raise HTTPException(status_code=400, detail="Location cannot be empty")
+        raise_validation_error(db, request, 400, "Location cannot be empty", logger)
 
     e_title = db.query(Event).filter(
         Event.event_title == update_event_obj.event_title,
         Event.event_id != event_id  # Exclude current event
     ).first()
     if e_title is not None:
-        raise HTTPException(status_code=409, detail="Event Name already Exists..!")
+        raise_validation_error(db, request, 409,"Event Name already Exists..!", logger)
 
     if update_event_obj.location != "online":
         event_datetime = datetime.strptime(f"{update_event_obj.date_of_event} {update_event_obj.time_of_event}", '%d-%m-%Y %H:%M')
@@ -364,7 +364,7 @@ def update_event(update_event_obj: EventUpdateDTO, event_id: int, db: db_depende
         ).first()
 
         if conflicting_event is not None:
-            raise HTTPException(status_code=409, detail="Unable to update since there is a conflicting event.")
+            raise_validation_error(db, request, 409,"Unable to update since there is a conflicting event.", logger)
 
     # Update the existing event with the new data
     result_bkp.event_id = event_id
@@ -387,6 +387,7 @@ def update_event(update_event_obj: EventUpdateDTO, event_id: int, db: db_depende
     log_obj = EventOpsLog(event_id = event_id, op_type = "PUT", op_desc = message , op_tstmp = datetime.now())
     db.add(log_obj)
     db.commit()
+    log_api(db, request, status.HTTP_200_OK, f"Event with id : {event_id} successfully updated", log=logger)
     return {"status_code": 200, "message": "Event successfully updated"}
 
 # Get All Events Function
@@ -423,7 +424,8 @@ def get_available_events(user_id : int, db : db_dependency, request:Request) :
     return{"status_code" : 200, "body" : result}
 
 @app.delete("/delete-event/{event_id}")
-def delete_event(event_id : int, db:db_dependency):
+def delete_event(event_id : int, db:db_dependency,request:Request):
+    logger.info(f"Endpoint Accessed - 'DELETE /delete-events/{event_id}'")
     db.query(EventBackUp).filter(EventBackUp.event_id == event_id).update(
         {EventBackUp.flag: "inactive",EventBackUp.latest_op: "DELETE", EventBackUp.op_tstmp:datetime.now()},
         synchronize_session=False
@@ -434,42 +436,50 @@ def delete_event(event_id : int, db:db_dependency):
     )
     result = db.query(Event).filter(Event.event_id == event_id).first()
     if result is None:
-        raise HTTPException(status_code=404, detail="No Event with id found")
+        raise_validation_error(db, request, 404, f"No Event found with id : {event_id}", logger)
     db.delete(result)
     log_obj = EventOpsLog(event_id = event_id, op_type = "DELETE", op_desc = "This Event is Deleted" , op_tstmp = datetime.now())
     db.add(log_obj)
     db.commit()
+    log_api(db, request, status.HTTP_200_OK, f"Event with Event_id : {event_id} Deleted", log=logger)
     return { "status_code" : 200, "message" : "Event deleted Successfully"}
 
 @app.get("/event/{event_id}")
-def get_event_by_id(event_id : int, db: db_dependency):
+def get_event_by_id(event_id : int, db: db_dependency, request : Request):
+    logger.info(f"Endpoint Accessed - 'GET /event/{event_id}'")
     result = db.query(Event).filter(Event.event_id == event_id).first()
     if result is None :
-        raise HTTPException(status_code=404, detail="No event found with Id")
+        raise_validation_error(db, request, 404, f"No Event found with id : {event_id}", logger)
+    log_api(db, request, status.HTTP_200_OK, f"Event fetched with Event : {event_id}", logger)
     return {"status_code" : 200, "body" : result}
 
 @app.get("/event_by_user/{user_id}")
-def get_event_by_user_id(user_id : int, db : db_dependency):
+def get_event_by_user_id(user_id : int, db : db_dependency, request: Request):
+    logger.info(f"Endpoint Accessed - 'GET /event_by_user/{user_id}'")
     result = db.query(Event).filter(Event.organizer_id == user_id).all()
     if result is None:
-        raise HTTPException(status_code=404, detail = "No event organised by this user")
+        raise_validation_error(db, request, 404, f"No event organised by user : {user_id}", logger)
+    log_api(db, request, status.HTTP_200_OK, f"Events fetched for user : {user_id}", logger)
     return {"status_code" : 200, "body" : result}
 
 @app.get("/event_by_user/pending/{user_id}")
-def get_pending_event_by_user_id(user_id : int, db : db_dependency):
+def get_pending_event_by_user_id(user_id : int, db : db_dependency, request : Request):
+    logger.info(f"Endpoint Accessed - 'GET /event_by_user/pending/{user_id}'")
     result = db.query(Event).filter(Event.organizer_id == user_id).filter(Event.status == "pending").all()
     if result is None:
-        raise HTTPException(status_code=404, detail = "No event organised by this user")
+        raise_validation_error(db, request, 404, f"No event organised by user : {user_id}", logger)
+    log_api(db, request, status.HTTP_200_OK, f"Pending Events fetched for user : {user_id}", logger)
     return {"status_code" : 200, "body" : result}
 
 @app.put("/approve-event/{event_id}")
-def approve_event(event_id : int, db : db_dependency, background_tasks : BackgroundTasks):
+def approve_event(event_id : int, db : db_dependency, background_tasks : BackgroundTasks, request : Request):
+    logger.info(f"Endpoint Accessed - 'PUT /approve-event/{event_id}'")
     result = db.query(Event).filter(Event.event_id == event_id).first()
     result_bkp = db.query(EventBackUp).filter(EventBackUp.event_id == event_id).first()
     if result is None :
-        raise HTTPException(status_code=404, detail="No event with Id")
+        raise_validation_error(db, request, 404, f"No event with id : {event_id}", logger)
     if result.status == "approved":
-        raise HTTPException(status_code=409, detail="This event is already approved")
+        raise_validation_error(db, request, 409, "This event is already approved", logger)
     result.approved_timestamp = result_bkp.approved_timestamp = datetime.now()
     result.status = result_bkp.status = "approved"
     log_obj = EventOpsLog(event_id = event_id, op_type = "PUT", op_desc = "Your event got approved by admin" , op_tstmp = datetime.now())
@@ -478,10 +488,12 @@ def approve_event(event_id : int, db : db_dependency, background_tasks : Backgro
     user_name = user.first_name + " " + user.last_name if user.last_name is not None else user.first_name
     background_tasks.add_task(utils.approval_email, user_name, result.event_title, result.date_of_event, result.time_of_event, result.location, result.event_description, user.email)
     db.commit()
+    log_api(db, request, status.HTTP_200_OK, f"Event with event Id : {event_id} Approved ", logger)
     return {"status_code" : 200, "message" : "event approved"}
 
 @app.put("/approve-all-events")
-def approve_all_event(db : db_dependency, background_tasks : BackgroundTasks):
+def approve_all_event(db : db_dependency, background_tasks : BackgroundTasks, request: Request):
+    logger.info(f"Endpoint Accessed - 'PUT /approve-all-events'")
     result = db.query(Event).filter(Event.status == "pending").all()
     result_bkp = db.query(EventBackUp).filter(EventBackUp.status == "pending").all()
     for i in result :
@@ -497,6 +509,7 @@ def approve_all_event(db : db_dependency, background_tasks : BackgroundTasks):
         log_obj = EventOpsLog(event_id = i.event_id, op_type = "PUT", op_desc = "Your event got approved by admin" , op_tstmp = datetime.now())
         db.add(log_obj)
         db.commit()
+        log_api(db, request, status.HTTP_200_OK, f"Event with event Id : {i.event_id} Approved ", logger)
     return {"status_code" : 200, "message" : "events approved"}
 
 @app.post("/register_event", status_code=201)
