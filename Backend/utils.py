@@ -490,3 +490,178 @@ def gratitude_email(user_name, event_name, date, time, location, description, us
             </html>
             """
     email_trigger(subject, body, user_email)
+
+def recommended_events(user_email, user_name, event_name, event_description, event_date, event_time):
+    subject = "Try these Events..!"
+    body = f"""
+            <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                    <style>
+                    body {{
+                        font-family: 'Arial', sans-serif;
+                        background-color: #f9f9f9;
+                        margin: 0;
+                        padding: 0;
+                    }}
+                    .email-container {{
+                        width: 100%;
+                        max-width: 600px;
+                        margin: 0 auto;
+                        background-color: #ffffff;
+                        border-radius: 12px;
+                        overflow: hidden;
+                        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+                        animation: slide-in 0.6s ease-out;
+                        border-top: 5px solid #ffc107;
+                    }}
+                    @keyframes slide-in {{
+                        from {{
+                        opacity: 0;
+                        transform: translateY(20px);
+                        }}
+                        to {{
+                        opacity: 1;
+                        transform: translateY(0);
+                        }}
+                    }}
+                    .header {{
+                        background: linear-gradient(135deg, #4a1bb1, #2575fc);
+                        padding: 20px;
+                        text-align: center;
+                        color: #ffffff;
+                        border-radius: 12px 12px 0 0;
+                    }}
+                    .header img {{
+                        width: 120px;
+                        margin: 0 auto 15px;
+                        display: block;
+                        border-radius: 50%;
+                    }}
+                    .header h1 {{
+                        font-size: 28px;
+                        margin: 0;
+                        font-weight: bold;
+                        color: #ffd700;
+                    }}
+                    .content {{
+                        padding: 20px;
+                        text-align: left;
+                        color: #333333;
+                    }}
+                    .content h2 {{
+                        font-size: 24px;
+                        color: #2575fc;
+                        margin-bottom: 10px;
+                    }}
+                    .content p {{
+                        font-size: 16px;
+                        line-height: 1.8;
+                        margin-bottom: 20px;
+                        color: #555555;
+                    }}
+
+                    /* Visiting Card Style */
+                    .event-card {{
+                        display: flex;
+                        align-items: center;
+                        background-color: #fff;
+                        border: 1px solid #ccc;
+                        border-radius: 12px;
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                        margin-bottom: 20px;
+                        padding: 15px;
+                        overflow: hidden;
+                        transition: box-shadow 0.3s ease;
+                    }}
+                    .event-card:hover {{
+                        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+                    }}
+                    .event-card img {{
+                        width: 120px;
+                        height: 120px;
+                        object-fit: cover;
+                        border-radius: 12px;
+                        margin-right: 20px;
+                    }}
+                    .event-details {{
+                        flex: 1;
+                        text-align: left;
+                    }}
+                    .event-details h3 {{
+                        font-size: 22px;
+                        margin-bottom: 8px;
+                        color: #2575fc;
+                    }}
+                    .event-details p {{
+                        font-size: 14px;
+                        margin: 4px 0;
+                        color: #777;
+                    }}
+                    .event-details .event-date-time {{
+                        font-weight: bold;
+                        color: #333;
+                        margin: 10px 0;
+                    }}
+                    .event-card a {{
+                        background-color: #2575fc;
+                        color: #ffffff;
+                        padding: 12px 20px;
+                        text-decoration: none;
+                        border-radius: 30px;
+                        display: inline-block;
+                        font-weight: bold;
+                        margin-top: 10px;
+                        transition: background 0.3s ease;
+                    }}
+                    .event-card a:hover {{
+                        background-color: #6a11cb;
+                    }}
+
+                    .footer {{
+                        background-color: #f3f4f6;
+                        padding: 20px;
+                        text-align: center;
+                        font-size: 14px;
+                        color: #999999;
+                        border-top: 2px solid #ffc107;
+                    }}
+                    .footer a {{
+                        color: #2575fc;
+                        text-decoration: none;
+                    }}
+                    </style>
+                </head>
+                <body>
+                    <div class="email-container">
+                    <div class="header">
+                        <img src="https://images.pexels.com/photos/2526105/pexels-photo-2526105.jpeg" alt="Recommended Events">
+                        <h1>Recommended Event Just for You!</h1>
+                    </div>
+
+                    <div class="content">
+                        <h2>Hey {user_name},</h2>
+                        <p>We've handpicked an exciting upcoming event just for you! Check it out below and register before spots fill up!</p>
+
+                        <div class="event-card">
+                        <img src="https://cdn-cjhkj.nitrocdn.com/krXSsXVqwzhduXLVuGLToUwHLNnSxUxO/assets/images/optimized/rev-f8c6d5b/spotme.com/wp-content/uploads/2020/07/Body-2-768x401.jpg" alt="{event_name}">
+                        <div class="event-details">
+                            <h3>{event_name}</h3>
+                            <p>{event_description}</p>
+                            <p class="event-date-time"><strong>Date:</strong> {event_date} &nbsp; | &nbsp; <strong>Time:</strong> {event_time}</p>
+                            <a href="http://localhost:3000/login">Login & Enroll</a>
+                        </div>
+                        </div>
+                    </div>
+
+                    <div class="footer">
+                        <p>Need help? <a href="mailto:support@events.com">Contact Support</a></p>
+                        <p>&copy; 2024 Events Platform. All rights reserved.</p>
+                    </div>
+                    </div>
+                </body>
+            </html>
+            """
+    email_trigger(subject, body, user_email)

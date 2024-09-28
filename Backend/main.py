@@ -9,14 +9,16 @@ from typing import Annotated, List
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from auth import get_password_hash, verify_password
+import random
 import re
-from sqlalchemy import update, func
+from sqlalchemy import func
 import utils
 import json
 from threading import Thread
 import logging
 import uvicorn
 from utils import log_api, raise_validation_error
+import requests
 
 app = FastAPI()
 logging.basicConfig(level=logging.INFO, filename=f'loggers/app_{datetime.now().strftime("%Y%m%d")}.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s')
@@ -95,9 +97,16 @@ def cleanUpOlderData():
             cnt += 1
         logger.info("Clean-Up Completed")
         print("Clean-Up Completed")
-    
+
+def trigger_email():
+    while True:
+        p = datetime.now().time()
+        if p.strftime('%H:%M:%S') == "22:50:00":
+            requests.get("http://127.0.0.1:8083/daily_recom")
+
 def start_background_task():
     task_thread = Thread(target=cleanUpOlderData)
+    task_thread = Thread(target=trigger_email)
     # Allows thread to exit when the main program exits
     task_thread.daemon = True  
     task_thread.start()
@@ -663,6 +672,18 @@ def get_inactive_events(db : db_dependency, request : Request):
         )
         return_dto.append(dto)
     return {"status": 200, "message": "All Inactive Events fetched successfully", "body": return_dto}
+
+@app.get("/daily_recom")
+async def recommend_event(db : db_dependency):
+    user = db.query(User).all()
+    logger.info("Emails Trigger in Progress..!")
+    for i in user :
+        if i.privilege == "USER" :
+            event_id = random.choice([i.event_id for i in db.query(Event).filter(Event.status == 'approved').all()])
+            event = db.query(Event).filter(Event.event_id == event_id).first()
+            utils.recommended_events(i.email, i.first_name, event.event_title, event.event_description, event.date_of_event, event.time_of_event)
+            logger.info(f"Email sent to {i.email}")
+    return {"response" : "All the emails are sent"}
 
 @app.on_event("shutdown")
 def shutdown_event():
