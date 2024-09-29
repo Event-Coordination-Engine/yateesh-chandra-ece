@@ -86,14 +86,11 @@ def cleanUpOlderData():
         ).all()
     if len(inactive_events) == 0:
         logger.info("No earlier events to be Cleaned")
-        print("No earlier events to be Cleaned")
     else:
         logger.info(f"Cleaning up {len(inactive_events)} events: ")
-        print(f"Cleaning up {len(inactive_events)} events: ")
         cnt = 1
         for event in inactive_events:
             logger.info(f"{cnt}. {event.event_title} - {event.date_of_event}")
-            print(f"{cnt}. {event.event_title} - {event.date_of_event}")
 
             # Updating the Status in Event Backup table to inactive
             db.query(EventBackUp).filter(
@@ -124,7 +121,6 @@ def cleanUpOlderData():
             db.commit()
             cnt += 1
         logger.info("Clean-Up Completed")
-        print("Clean-Up Completed")
 
 
 # This is the function used by thread to send recommended mails
@@ -411,7 +407,6 @@ def update_event(update_event_obj: EventUpdateDTO,
     result_bkp = db.query(EventBackUp).filter(
         EventBackUp.event_id == event_id
         ).first()
-    print(update_event_obj.date_of_event)
     update_dict = update_event_obj.dict()
     result_dict = {key: value for key, value in result.__dict__.items()
                    if not key.startswith('_')}
@@ -433,8 +428,10 @@ def update_event(update_event_obj: EventUpdateDTO,
     if result is None:
         raise_validation_error(db, request, 404,
                                f"No event with id: {event_id}", logger)
-    event_date = validate_event_date(update_event_obj.date_of_event)
-    event_time = validate_event_time(update_event_obj.time_of_event)
+    event_date = validate_event_date(db, request, logger,
+                                     update_event_obj.date_of_event)
+    event_time = validate_event_time(db, request, logger,
+                                     update_event_obj.time_of_event)
     db_user = db.query(User).filter(
         update_event_obj.organizer_id == User.user_id
         ).first()
@@ -1000,10 +997,12 @@ def run_pycodestyle():
     if result.returncode != 0:
         print("Code style violations found:\n")
         print(result.stdout)
+        logger.warning("Code style violations found:")
+        logger.warning(result.stdout)
         # Exit if there are style violations
         sys.exit(1)
     else:
-        print("No Check Style error found. Code is Clean")
+        logger.info("No Check Style error found. Code is Clean")
 
 
 # Execution of Main Function in target file

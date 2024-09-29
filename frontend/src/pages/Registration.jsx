@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import SweetAlert from "../sweetalerts/SweetAlert";
@@ -164,7 +165,7 @@ const Registration = () => {
 
         } catch (error) {
             console.error(error);
-            if (error.response.data.detail === "User with same Email already exists") {
+            if (error.response.data.detail === "User with the same email already exists") {
                 Swal.fire({
                     timer : 2000,
                     titleText : "Oops.! Duplicate Email not allowed",
@@ -172,6 +173,11 @@ const Registration = () => {
                 })
                 setEmailError(error.response.data.detail);
             }
+            Swal.fire({
+                timer : 2000,
+                titleText : error.response.data.detail,
+                icon : "warning"
+            })
         }
     };
 
@@ -269,7 +275,6 @@ const Registration = () => {
                     />
                     {phoneError && <div className="error">{phoneError}</div>}
                 </div>
-
                 <div className="button-group">
                     <button type="submit" className="submit-button">Register</button>
                     <button type="button" className="home-button" onClick={redirect}>Home</button>

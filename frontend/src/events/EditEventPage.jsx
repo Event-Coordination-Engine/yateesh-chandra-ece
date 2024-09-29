@@ -71,7 +71,7 @@ const EditEventPage = () => {
         } catch (err) {
             console.error(err);
             Swal.fire({
-                title: err.response.data.body,
+                title: err.response.data.detail,
                 timer: 1500,
                 showConfirmButton: false,
                 icon: "error"

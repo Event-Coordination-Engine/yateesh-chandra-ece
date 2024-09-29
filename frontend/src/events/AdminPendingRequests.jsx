@@ -74,7 +74,7 @@ const AdminPendingRequests = () => {
                     </p>
                 ) : filteredEvents.length === 0 ? ( 
                     <p className="no-items-text">
-                        <i className="fas fa-smile-beam"></i> No matching events
+                        <i className="fas fa-smile-beam"></i> No Pending events
                     </p>
                 ) : (
                     filteredEvents.map((event, index) => (

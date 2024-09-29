@@ -87,6 +87,7 @@ const Login = () => {
                     icon : "error",
                     timer : 2000,
                 })
+                setEmailError(error.response.data.detail)
             }
                 
         }
