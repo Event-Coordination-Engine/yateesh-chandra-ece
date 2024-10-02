@@ -29,8 +29,6 @@ const UserRegistration = () => {
         
         try {
             await registrationService.registerEvent(formData);
-            console.log("Registered for the event");
-            
             Swal.fire({
                 title: "Registered for the event",
                 icon: "success",
@@ -51,10 +49,9 @@ const UserRegistration = () => {
                 text: err.response.data.detail,
                 icon: "error",
             });
-            console.log(err);}
+            console.error(err);
+            }
         }
-        
-        console.log("Registration Form submitted:", formData);
     };
     
     return (

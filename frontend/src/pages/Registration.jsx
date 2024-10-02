@@ -1,5 +1,6 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState } from "react";
-import { FaEye, FaEyeSlash } from "react-icons/fa";  // Importing eye icons
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import SweetAlert from "../sweetalerts/SweetAlert";
 import userService from "../services/userService";
 import { useNavigate } from "react-router-dom";
@@ -21,14 +22,11 @@ const Registration = () => {
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
     const navigate = useNavigate()
-
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const redirect = () => {
         navigate("/")
     }
-
-    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
     const handleNameChange = (e) => {
         setfirst_name(e.target.value);
@@ -161,14 +159,13 @@ const Registration = () => {
                 password,
                 phone,
             };
-            console.log(data);
             await userService.registerUser(data);
             SweetAlert.registrationSuccessFireAlert();
             navigate("/login");
 
         } catch (error) {
-            console.log(error);
-            if (error.response.data.detail === "User with same Email already exists") {
+            console.error(error);
+            if (error.response.data.detail === "User with the same email already exists") {
                 Swal.fire({
                     timer : 2000,
                     titleText : "Oops.! Duplicate Email not allowed",
@@ -176,6 +173,11 @@ const Registration = () => {
                 })
                 setEmailError(error.response.data.detail);
             }
+            Swal.fire({
+                timer : 2000,
+                titleText : error.response.data.detail,
+                icon : "warning"
+            })
         }
     };
 
@@ -273,7 +275,6 @@ const Registration = () => {
                     />
                     {phoneError && <div className="error">{phoneError}</div>}
                 </div>
-
                 <div className="button-group">
                     <button type="submit" className="submit-button">Register</button>
                     <button type="button" className="home-button" onClick={redirect}>Home</button>

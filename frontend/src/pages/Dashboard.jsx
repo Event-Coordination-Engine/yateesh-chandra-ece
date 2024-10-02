@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import "./Dashboard.css"; // Ensure you create this CSS file for styles
+import "./Dashboard.css";
 
 const Dashboard = () => {
     const userRole = localStorage.getItem("role");
@@ -18,11 +18,9 @@ const Dashboard = () => {
                         <Link to="/dashboard/my-events" className="action-button">
                             My Events
                         </Link>
-                        {userRole === "ADMIN" && (
-                            <Link to="/dashboard/pending-requests" className="action-button">
+                        <Link to="/dashboard/pending-requests" className="action-button">
                                 Pending Requests
-                            </Link>
-                        )}
+                        </Link>
                     </div>
                 </section>
 

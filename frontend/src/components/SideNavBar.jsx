@@ -8,7 +8,7 @@ const SideNavBar = ({ isNavOpen, handleSignout, closeNav }) => {
     const userRole = localStorage.getItem("role");
 
     const handleLinkClick = () => {
-        closeNav(); // Close the navigation bar
+        closeNav();
     };
 
     return (

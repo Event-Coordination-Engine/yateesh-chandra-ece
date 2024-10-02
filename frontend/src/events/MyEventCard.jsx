@@ -22,7 +22,6 @@ const MyEventCard = ({ event, refreshEvents, sourcePage }) => {
                 timer: 2000,
                 showConfirmButton: false
             });
-            // Call the refresh function to update the list of events
             refreshEvents();
         } catch (err) {
             console.error(err);
@@ -46,7 +45,7 @@ const MyEventCard = ({ event, refreshEvents, sourcePage }) => {
     };
 
     const handleEdit = () => {
-        navigate(`/dashboard/edit-event/${event.event_id}`, { state: { from: sourcePage } }); // Navigate to the EditEventPage with the event ID
+        navigate(`/dashboard/edit-event/${event.event_id}`, { state: { from: sourcePage } });
     };
 
     return (

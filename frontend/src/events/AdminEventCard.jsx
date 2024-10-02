@@ -20,7 +20,6 @@ const AdminEventCard = ({ event, refreshEvents }) => {
                 timer: 2000,
                 showConfirmButton: false
             });
-            // Call the refresh function to update the list of events
             refreshEvents();
         } catch (err) {
             console.error(err);

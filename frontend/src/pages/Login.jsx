@@ -6,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
 const Login = () => {
-
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [emailError, setEmailError] = useState("");
@@ -59,10 +58,7 @@ const Login = () => {
                 email,
                 password
             };
-            console.log(data);
             const response = await userService.loginUser(data);
-            console.log(response)
-            
             localStorage.setItem("role", response.data.body.privilege);
             localStorage.setItem("id", response.data.body.user_id);
             localStorage.setItem("name", response.data.body.name);
@@ -76,8 +72,7 @@ const Login = () => {
             
 
         } catch (error) {
-            console.log(error);
-            
+            console.error(error);
             if(error.response.data.detail == "Unregistered Email"){
                 Swal.fire({
                     title : "Unauthorised",
@@ -92,6 +87,7 @@ const Login = () => {
                     icon : "error",
                     timer : 2000,
                 })
+                setEmailError(error.response.data.detail)
             }
                 
         }

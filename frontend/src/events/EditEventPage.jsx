@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom"; // Import hooks
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import eventService from "../services/eventService";
 import Swal from "sweetalert2";
 
@@ -8,12 +8,8 @@ const EditEventPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const organizerId = localStorage.getItem("id");
-    
-    // Retrieve the source page from location state
     const { state } = location;
-    console.log(state)
-    const sourcePage = state?.from || "/"; // Default to "/" if no sourcePage is provided
-    console.log(sourcePage)
+    const sourcePage = state?.from || "/";
 
     const [formData, setFormData] = useState({
         event_title: "",
@@ -40,7 +36,7 @@ const EditEventPage = () => {
                     organizer_id: organizerId,
                 });
             } catch (err) {
-                console.log(err);
+                console.error(err);
             }
         };
         fetchEvent();
@@ -70,19 +66,17 @@ const EditEventPage = () => {
                 showConfirmButton: false,
                 icon: "success"
             }).then(() => {
-                // Redirect back to the source page
                 navigate(`/dashboard/${sourcePage}`);
             });
         } catch (err) {
-            console.log(err);
+            console.error(err);
             Swal.fire({
-                title: err.response.data.body,
+                title: err.response.data.detail,
                 timer: 1500,
                 showConfirmButton: false,
                 icon: "error"
             })
         }
-        console.log("Form submitted:", formData);
     };
 
     return (
